@@ -1,8 +1,8 @@
-import { MONGODB_URI, MONGODB_DB } from "$env/static/private";
+import { env } from "$env/dynamic/private";
 import { MongoClient } from "mongodb";
 
-const uri = MONGODB_URI;
-if (!uri) throw new Error("MONGODB_URI fehlt in der .env Datei");
+const uri = env.MONGODB_URI;
+if (!uri) throw new Error("MONGODB_URI fehlt in den Environment Variables");
 
 let client;
 let clientPromise;
@@ -12,7 +12,7 @@ if (!clientPromise) {
     clientPromise = client.connect();
 }
 
-export async function getDb(name = MONGODB_DB || "kpe") {
+export async function getDb(name = env.MONGODB_DB || "kpe") {
     const c = await clientPromise;
     return c.db(name);
 }
