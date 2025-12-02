@@ -1,12 +1,12 @@
-
 <script>
+	import { tick } from 'svelte';
+	import { goto } from '$app/navigation';
+
 	const roles = [
 		{ id: 'coach', title: 'Coach', subtitle: 'Bewerten und analysieren', href: '/coach', type: 'shield', color: '#e11d2f' },
-		{ id: 'athlet', title: 'Athlet', subtitle: 'Performance verfolgen', href: '/athlete', type: 'trophy', color: '#0f1724' },
-		{ id: 'referee', title: 'Schiedsrichter', subtitle: 'Wettkämpfe bewerten', href: '/referee', type: 'user', color: '#4b5563' }
+		{ id: 'athlet', title: 'Athlet', subtitle: 'Performance verfolgen', href: '/athlete', type: 'trophy', color: '#0a0d14' },
+		{ id: 'referee', title: 'Schiedsrichter', subtitle: 'Wettk\u00e4mpfe bewerten', href: '/referee', type: 'user', color: '#2f3744' }
 	];
-
-	import { tick } from 'svelte';
 
 	let showModal = false;
 	let activeRole = null;
@@ -22,19 +22,15 @@
 		password = '';
 		showModal = true;
 		await tick();
-		// focus first focusable element inside modal (email input)
-		if (modalEl) {
-			const input = modalEl.querySelector('#email');
-			if (input) input.focus();
-			else modalEl.focus();
-		}
+		const input = modalEl?.querySelector('#email');
+		if (input) input.focus();
+		else modalEl?.focus();
 	}
 
 	async function closeModal() {
 		showModal = false;
 		activeRole = null;
 		await tick();
-		// restore focus to the opener element if available
 		try {
 			if (openerEl) {
 				openerEl.classList.add('focus-highlight');
@@ -62,22 +58,16 @@
 					e.preventDefault();
 					nodes[nodes.length - 1].focus();
 				}
-			} else {
-				if (idx === nodes.length - 1) {
-					e.preventDefault();
-					nodes[0].focus();
-				}
+			} else if (idx === nodes.length - 1) {
+				e.preventDefault();
+				nodes[0].focus();
 			}
 		}
 	}
 
-	import { goto } from '$app/navigation';
-
 	function handleLogin() {
-		// For now: accept any credentials and navigate to the selected role page
 		console.log('Login', { role: activeRole?.id, email, password });
 		const target = activeRole?.href || '/';
-		// close the modal and navigate
 		closeModal();
 		goto(target);
 	}
@@ -90,19 +80,32 @@
 
 	function trophy() {
 		return `
-			<svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8v2a3 3 0 0 1-3 3H11A3 3 0 0 1 8 5V3z"></path><path d="M6 8v2a6 6 0 0 0 6 6 6 6 0 0 0 6-6V8"></path><path d="M9 21h6"></path></svg>
+			<svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+				<path d="M8 4h8v3.2a4 4 0 0 1-4 4h0a4 4 0 0 1-4-4z"></path>
+				<path d="M8 7H6a2.5 2.5 0 0 1-2.5-2.5V4H8"></path>
+				<path d="M16 7h2a2.5 2.5 0 0 0 2.5-2.5V4H16"></path>
+				<path d="M12 11v4.2"></path>
+				<path d="M10.25 19.4h3.5"></path>
+				<path d="M9 21h6"></path>
+			</svg>
 		`;
 	}
 
 	function shield() {
 		return `
-			<svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l7 4v5c0 5-3.5 9.7-7 11-3.5-1.3-7-6-7-11V6l7-4z"></path></svg>
+			<svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+				<path d="M12 3.2 19 6v5c0 4.8-3.1 9.4-7 10.8C8.1 20.4 5 15.8 5 11V6z"></path>
+			</svg>
 		`;
 	}
 
 	function user() {
 		return `
-			<svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+			<svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+				<circle cx="12" cy="9" r="3.3"></circle>
+				<path d="M6.5 19.5a5.5 5.5 0 0 1 11 0"></path>
+				<path d="M6.5 19.5h11"></path>
+			</svg>
 		`;
 	}
 </script>
@@ -111,8 +114,14 @@
 	<div class="center">
 		<div class="logo">
 			<div class="logo-square">
-				<!-- small trophy icon in white -->
-				<svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8v2a3 3 0 0 1-3 3H11A3 3 0 0 1 8 5V3z"></path><path d="M6 8v2a6 6 0 0 0 6 6 6 6 0 0 0 6-6V8"></path><path d="M9 21h6"></path></svg>
+				<svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M8 4h8v3.2a4 4 0 0 1-4 4h0a4 4 0 0 1-4-4z"></path>
+					<path d="M8 7H6a2.5 2.5 0 0 1-2.5-2.5V4H8"></path>
+					<path d="M16 7h2a2.5 2.5 0 0 0 2.5-2.5V4H16"></path>
+					<path d="M12 11v4.2"></path>
+					<path d="M10.25 19.4h3.5"></path>
+					<path d="M9 21h6"></path>
+				</svg>
 			</div>
 			<h1>Karate Performance Evaluator</h1>
 			<p class="subtitle">Schweizer Karate-Nationalkader</p>
@@ -121,7 +130,7 @@
 		<div class="cards">
 			{#each roles as r}
 				<button class="card" type="button" on:click={(e) => openModal(r, e)} aria-label={r.title}>
-					<div class="icon" style="background:{r.color}">
+					<div class="icon" style={`background:${r.color}`}>
 						{@html Icon({ type: r.type })}
 					</div>
 					<div class="card-text">
@@ -132,7 +141,7 @@
 			{/each}
 		</div>
 
-		<p class="hint">Wählen Sie Ihre Rolle aus, um fortzufahren</p>
+		<p class="hint">W&auml;hlen Sie Ihre Rolle aus, um fortzufahren</p>
 	</div>
 
 	{#if showModal}
@@ -143,7 +152,7 @@
 						{@html Icon({ type: activeRole.type })}
 					</div>
 					<h3 id="modal-title">Anmeldung als {activeRole.title}</h3>
-					<button class="close" aria-label="Schliessen" on:click={closeModal}>✕</button>
+					<button class="close" aria-label="Schliessen" on:click={closeModal}>&times;</button>
 				</div>
 				<p class="modal-desc">Bitte geben Sie Ihre Anmeldedaten ein, um fortzufahren.</p>
 				<form class="modal-form" on:submit|preventDefault={handleLogin}>
@@ -185,7 +194,6 @@
 	.card:active{transform:translateY(-2px);opacity:0.98}
 	.card:focus{outline:none;box-shadow:0 8px 26px rgba(225,29,47,0.12)}
 
-	/* focus highlight when restoring focus */
 	:global(.focus-highlight){animation:focusPulse .7s ease forwards}
 	@keyframes focusPulse{0%{box-shadow:0 0 0 0 rgba(225,29,47,0.0)}30%{box-shadow:0 10px 30px rgba(225,29,47,0.12)}100%{box-shadow:none}}
 
@@ -200,11 +208,8 @@
 		.cards{grid-template-columns:1fr;max-width:420px;margin:0 auto}
 	}
 
-	/* Modal styles */
-
 	.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,11,0.52);z-index:60}
 	.modal{background:#fff;color:#111;border-radius:12px;max-width:560px;width:92%;padding:22px 22px 18px;box-shadow:0 30px 70px rgba(2,6,11,0.6)}
-	/* ensure inputs and children don't overflow modal */
 	.modal, .modal * { box-sizing: border-box; }
 	.modal-header{display:flex;align-items:center;gap:12px}
 	.modal-icon{width:42px;height:42px;border-radius:999px;background:#111;display:flex;align-items:center;justify-content:center;color:#fff}
