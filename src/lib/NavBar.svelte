@@ -6,6 +6,7 @@
 
 	const navItems = [
 		{ id: 'dashboard', label: 'Dashboard', href: '/coach', icon: 'home' },
+		{ id: 'overview', label: 'Übersicht', href: '/overview', icon: 'chart' },
 		{ id: 'bewertung', label: 'Bewertung', href: '/bewertung', icon: 'clipboard' },
 		{ id: 'analyse', label: 'Analyse', href: '/analyse', icon: 'chart' },
 		{ id: 'feedback', label: 'Feedback', href: '/feedback', icon: 'chat' },
@@ -83,6 +84,7 @@
 
 	function deriveActive(pathname = '') {
 		if (active) return active;
+		if (pathname.startsWith('/overview')) return 'overview';
 		if (pathname.startsWith('/bewertung')) return 'bewertung';
 		if (pathname.startsWith('/analyse')) return 'analyse';
 		if (pathname.startsWith('/feedback')) return 'feedback';
