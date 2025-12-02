@@ -1,8 +1,20 @@
 <script>
+	import { invalidateAll } from '$app/navigation';
 	import NavBar from '$lib/NavBar.svelte';
+	import Card from '$lib/components/Card.svelte';
+	import FormField from '$lib/components/FormField.svelte';
+	import Badge from '$lib/components/Badge.svelte';
 
 	export let data;
-	const list = data?.evaluations || [];
+	let list = data?.evaluations || [];
+
+	let athlete = '';
+	let discipline = '';
+	let coach = '';
+	let score = 80;
+	let comment = '';
+	let sending = false;
+	let errorMsg = '';
 
 	const formatDate = (d) => {
 		try {
@@ -13,6 +25,49 @@
 			return d || '—';
 		}
 	};
+
+	async function createEvaluation() {
+		errorMsg = '';
+		if (!athlete || !discipline) {
+			errorMsg = 'Athlet und Disziplin sind Pflichtfelder.';
+			return;
+		}
+		sending = true;
+		try {
+			const res = await fetch('/api/evaluations', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					athlete,
+					discipline,
+					coach,
+					score: Number(score),
+					comment,
+					details: [
+						{ label: 'Score', value: Number(score) }
+					]
+				})
+			});
+			if (!res.ok) {
+				const text = await res.text();
+				throw new Error(text || 'Fehler beim Speichern');
+			}
+			athlete = '';
+			discipline = '';
+			coach = '';
+			score = 80;
+			comment = '';
+			await invalidateAll();
+			const refreshed = await fetch('/api/evaluations');
+			if (refreshed.ok) {
+				list = await refreshed.json();
+			}
+		} catch (e) {
+			errorMsg = e.message || 'Fehler beim Speichern';
+		} finally {
+			sending = false;
+		}
+	}
 </script>
 
 <div class="app-shell">
@@ -27,6 +82,24 @@
 			<a class="btn primary" href="/bewertung">Neue Bewertung erfassen</a>
 		</header>
 
+		<Card title="Neuen Athleten/Bewertung erfassen">
+			<div class="form-grid">
+				<FormField label="Athlet *" placeholder="Name" bind:value={athlete} required />
+				<FormField label="Disziplin *" placeholder="z.B. Kata" bind:value={discipline} required />
+				<FormField label="Coach" placeholder="Coach Name" bind:value={coach} />
+				<FormField label="Score (0-100)" type="number" bind:value={score} />
+				<div class="full">
+					<FormField label="Kommentar" type="textarea" rows="2" placeholder="Kurzkommentar" bind:value={comment} />
+				</div>
+			</div>
+			{#if errorMsg}
+				<div class="error">{errorMsg}</div>
+			{/if}
+			<button class="btn primary" type="button" on:click={createEvaluation} disabled={sending}>
+				{sending ? 'Speichern...' : 'Speichern'}
+			</button>
+		</Card>
+
 		{#if list.length === 0}
 			<div class="empty card">
 				<h3>Noch keine Bewertungen</h3>
@@ -36,10 +109,10 @@
 		{:else}
 			<section class="grid">
 				{#each list as ev}
-					<article class="card">
+					<Card>
 						<div class="top">
 							<div>
-								<div class="pill">{ev.discipline || '—'}</div>
+								<Badge tone="blue" label={ev.discipline || '—'} />
 								<h3>{ev.athlete || ev.name || 'Unbekannt'}</h3>
 								<p class="muted">{ev.coach || 'Coach'}</p>
 							</div>
@@ -47,7 +120,7 @@
 						</div>
 						<div class="meta">
 							<span>{formatDate(ev.date)}</span>
-							<span>{ev.badge || ''}</span>
+							{#if ev.badge}<Badge tone={(ev.badgeTone || 'gray')} label={ev.badge} />{/if}
 						</div>
 						{#if ev.text || ev.comment}
 							<p class="comment">{ev.text || ev.comment}</p>
@@ -62,7 +135,7 @@
 								{/each}
 							</div>
 						{/if}
-					</article>
+					</Card>
 				{/each}
 			</section>
 		{/if}
@@ -79,6 +152,10 @@
 	.btn.primary{background:#e11d2f;color:#fff;border-color:#e11d2f}
 	.btn.primary:hover{box-shadow:0 8px 18px rgba(225,29,47,0.25)}
 	.btn.ghost{background:#fff;border:1px solid #e5e7eb;color:#111}
+
+	.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+	.full{grid-column:1 / -1}
+	.error{color:#b91c1c;font-weight:600;font-size:13px}
 
 	.card{background:#fff;border-radius:12px;border:1px solid #e5e7eb;box-shadow:0 8px 18px rgba(15,23,36,0.05);padding:16px}
 	.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
