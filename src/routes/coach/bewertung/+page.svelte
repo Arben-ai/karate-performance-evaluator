@@ -30,8 +30,17 @@
   let toastTimer;
   let dropdownOpen = false;
   let dropdownEl;
+  let coachName = 'Daniel';
 
   const disciplines = ['Kata', 'Kumite'];
+
+  $: coachName = data?.coachName || coachName;
+
+  const formatCoachName = (value) => {
+    const raw = (value || '').toString().trim();
+    if (!raw) return 'Coach Daniel';
+    return raw.toLowerCase().startsWith('coach ') ? raw : `Coach ${raw}`;
+  };
 
   $: urlAthleteId = $page.url.searchParams.get('athlete') || '';
   $: urlDiscipline = $page.url.searchParams.get('discipline') || '';
@@ -154,7 +163,7 @@
       name: `${getAthleteName(selectedAthlete)} - ${selectedDiscipline}`,
       athlete: getAthleteName(selectedAthlete),
       discipline: selectedDiscipline,
-      coach: 'Coach Daniel',
+      coach: formatCoachName(coachName),
       date: formatDate(new Date()),
       text: comment || 'Neue Bewertung erfasst.',
       score: average,

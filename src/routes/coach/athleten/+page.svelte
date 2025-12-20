@@ -23,6 +23,8 @@ let filterAge = 'alle';
 let deleting = '';
 let openMenuId = '';
 let editingAthlete = null;
+let editingAthleteId = '';
+let editingAthleteName = '';
 let editForm = { athlete: '', discipline: '', coach: '', gender: '', age: '', rank: '' };
 let savingEdit = false;
 let editError = '';
@@ -211,18 +213,27 @@ async function submitAthlete(payload, setError, setSending) {
 		filterAge = 'alle';
 	}
 
+	const athleteId = (ath = {}) => {
+		const raw = ath?._id ?? ath?.id;
+		if (!raw) return '';
+		if (typeof raw === 'string') return raw;
+		if (typeof raw === 'object' && raw.$oid) return raw.$oid;
+		return typeof raw.toString === 'function' ? raw.toString() : String(raw);
+	};
+
 	function buildEvaluateLink(ath = {}) {
 		const params = new URLSearchParams();
-		const id = ath?._id || ath?.id;
+		const id = athleteId(ath);
 		if (id) params.set('athlete', id.toString());
 		if (ath?.discipline) params.set('discipline', ath.discipline);
 		const query = params.toString();
 		return `/coach/bewertung${query ? `?${query}` : ''}`;
 	}
 
-	async function deleteAthlete(id) {
+	async function deleteAthlete(ath) {
+		const id = athleteId(ath);
 		if (!id) return;
-		const target = list.find((ath) => ath._id === id);
+		const target = list.find((item) => athleteId(item) === id);
 		deleting = id;
 		openMenuId = '';
 		try {
@@ -241,13 +252,16 @@ async function submitAthlete(payload, setError, setSending) {
 		}
 	}
 
-	function toggleMenu(id) {
+	function toggleMenu(ath) {
+		const id = athleteId(ath);
 		openMenuId = openMenuId === id ? '' : id;
 	}
 
 	function startEdit(ath) {
 		if (!ath) return;
 		editingAthlete = ath;
+		editingAthleteId = athleteId(ath);
+		editingAthleteName = (ath?.athlete || ath?.name || '').toString().trim();
 		editForm = {
 			athlete: ath?.athlete || ath?.name || '',
 			discipline: ath?.discipline || '',
@@ -260,8 +274,15 @@ async function submitAthlete(payload, setError, setSending) {
 		openMenuId = '';
 	}
 
+	function cancelEdit() {
+		editingAthlete = null;
+		editingAthleteId = '';
+		editingAthleteName = '';
+		editError = '';
+	}
+
 	async function saveEdit() {
-		if (!editingAthlete?._id) return;
+		if (!editingAthleteId) return;
 		editError = '';
 		const ageNum = Number(editForm.age);
 		if (
@@ -283,7 +304,8 @@ async function submitAthlete(payload, setError, setSending) {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					id: editingAthlete._id,
+					id: editingAthleteId,
+					previousAthlete: editingAthleteName,
 					athlete: editForm.athlete,
 					discipline: editForm.discipline,
 					coach: editForm.coach,
@@ -297,9 +319,13 @@ async function submitAthlete(payload, setError, setSending) {
 				throw new Error(text || 'Speichern fehlgeschlagen');
 			}
 			const updated = await res.json();
-			list = list.map((a) => (a._id === editingAthlete._id ? { ...a, ...updated } : a));
+			list = list.map((a) => (athleteId(a) === editingAthleteId ? { ...a, ...updated } : a));
 			editingAthlete = null;
+			editingAthleteId = '';
+			editingAthleteName = '';
 			showToast('Athlet aktualisiert');
+			invalidateAll().catch(() => {});
+			evaluations.loadFromApi?.();
 		} catch (e) {
 			editError = e.message || 'Speichern fehlgeschlagen';
 		} finally {
@@ -441,27 +467,51 @@ async function submitAthlete(payload, setError, setSending) {
 									{#if ath.coach}<p class="muted">Hauptcoach: {ath.coach}</p>{/if}
 									{#if ath.gender || ath.age || ath.rank}
 										<ul class="meta-list">
-											{#if ath.gender}<li>Geschlecht: {displayGender(ath.gender)}</li>{/if}
-											{#if ath.age}<li>Alter: {ath.age}</li>{/if}
-											{#if ath.rank}<li>Grad: {ath.rank}</li>{/if}
+											{#if ath.gender}
+												<li class="meta-row">
+													<span class="meta-pair">
+														<span class="meta-label">Geschlecht:</span>
+														<span class="meta-value">{displayGender(ath.gender)}</span>
+													</span>
+												</li>
+											{/if}
+											{#if ath.age}
+												<li class="meta-row">
+													<span class="meta-pair">
+														<span class="meta-label">Alter:</span>
+														<span class="meta-value">{ath.age}</span>
+													</span>
+												</li>
+											{/if}
+											{#if ath.rank}
+												<li class="meta-row">
+													<span class="meta-pair">
+														<span class="meta-label">Grad:</span>
+														<span class="meta-value">{ath.rank}</span>
+													</span>
+												</li>
+											{/if}
 										</ul>
 									{/if}
 								</div>
 								<div class="top-right">
 									<div class="score small-score">{formatDate(ath.createdAt)}</div>
 									<div class="menu-wrap">
-										<button class="icon-btn" type="button" on:click={() => toggleMenu(ath._id)} title="Aktionen">
-											{openMenuId === ath._id ? 'x' : '...'}
+										<button class="icon-btn" type="button" on:click={() => toggleMenu(ath)} title="Aktionen">
+											{openMenuId === athleteId(ath) ? 'x' : '...'}
 										</button>
-										{#if openMenuId === ath._id}
+										{#if openMenuId === athleteId(ath)}
 											<div class="card-menu">
+												<button type="button" class="menu-item" on:click={() => startEdit(ath)}>
+													Athlet bearbeiten
+												</button>
 												<button
 													type="button"
 													class="menu-item danger"
-													on:click={() => deleteAthlete(ath._id)}
-													disabled={deleting === ath._id}
+													on:click={() => deleteAthlete(ath)}
+													disabled={deleting === athleteId(ath)}
 												>
-													{deleting === ath._id ? 'Lösche...' : 'Athlet löschen'}
+													{deleting === athleteId(ath) ? 'Lösche...' : 'Athlet löschen'}
 												</button>
 											</div>
 										{/if}
@@ -475,6 +525,73 @@ async function submitAthlete(payload, setError, setSending) {
 					{/each}
 				{/if}
 			</section>
+		{/if}
+		{#if editingAthlete}
+			<div class="modal-backdrop" on:click={cancelEdit}>
+				<div class="modal card" on:click|stopPropagation>
+					<div class="modal-header">
+						<h3>Athlet bearbeiten</h3>
+						<button class="icon-btn" type="button" on:click={cancelEdit} aria-label="Schliessen">
+							x
+						</button>
+					</div>
+					<div class="form-grid compact">
+						<FormField label="Athlet *" placeholder="Name" bind:value={editForm.athlete} required />
+						<FormField
+							label="Alter *"
+							type="number"
+							min="0"
+							step="1"
+							placeholder="z.B. 22"
+							bind:value={editForm.age}
+							required
+						/>
+						<div class="select-wrap">
+							<label>Hauptcoach *</label>
+							<CustomSelect
+								placeholder="Hauptcoach waehlen..."
+								options={coachOptions}
+								bind:value={editForm.coach}
+							/>
+						</div>
+						<div class="select-wrap">
+							<label>Geschlecht *</label>
+							<CustomSelect
+								placeholder="Geschlecht waehlen..."
+								options={genderOptions}
+								bind:value={editForm.gender}
+							/>
+						</div>
+						<div class="select-wrap">
+							<label>Kyu/Dan *</label>
+							<CustomSelect
+								placeholder="Grad waehlen..."
+								options={rankOptions}
+								bind:value={editForm.rank}
+							/>
+						</div>
+						<div class="select-wrap">
+							<label>Disziplin *</label>
+							<CustomSelect
+								placeholder="Disziplin waehlen..."
+								options={disciplineOptions}
+								bind:value={editForm.discipline}
+							/>
+						</div>
+					</div>
+					{#if editError}
+						<div class="error">{editError}</div>
+					{/if}
+					<div class="modal-actions">
+						<button class="btn ghost" type="button" on:click={cancelEdit} disabled={savingEdit}>
+							Abbrechen
+						</button>
+						<button class="btn primary" type="button" on:click={saveEdit} disabled={savingEdit}>
+							{savingEdit ? 'Speichern...' : 'Aenderungen speichern'}
+						</button>
+					</div>
+				</div>
+			</div>
 		{/if}
 	</main>
 </div>
@@ -549,7 +666,10 @@ async function submitAthlete(payload, setError, setSending) {
 	.card-actions{margin-top:10px;display:flex;justify-content:flex-end}
 	.small-score{font-size:14px;font-weight:600}
 	.meta-list{margin:6px 0 0;padding-left:18px;font-size:13px;color:#4b5563}
-	.meta-list li{margin-bottom:4px}
+	.meta-row{list-style-position:outside;margin-bottom:4px}
+	.meta-pair{display:inline-flex;gap:4px;white-space:nowrap}
+	.meta-label{font-weight:600;color:#4b5563}
+	.meta-value{color:#4b5563}
 	.top-right{display:flex;align-items:flex-start;gap:8px}
 	.icon-btn{
 		border:1px solid #e5e7eb;
@@ -586,6 +706,33 @@ async function submitAthlete(payload, setError, setSending) {
 	}
 	.menu-item.danger{color:#b91c1c}
 	.menu-item:disabled{opacity:0.7;cursor:default}
+	.modal-backdrop{
+		position:fixed;
+		inset:0;
+		background:rgba(15,23,36,0.55);
+		display:flex;
+		align-items:center;
+		justify-content:center;
+		padding:20px;
+		z-index:30;
+	}
+	.modal{
+		width:min(720px, 96vw);
+		border-radius:14px;
+	}
+	.modal-header{
+		display:flex;
+		align-items:center;
+		justify-content:space-between;
+		gap:12px;
+		margin-bottom:12px;
+	}
+	.modal-actions{
+		display:flex;
+		justify-content:flex-end;
+		gap:10px;
+		margin-top:12px;
+	}
 	.toast{
 		position:fixed;
 		top:18px;
