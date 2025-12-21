@@ -43,6 +43,16 @@
 	const extractImprovement = (text) => {
 		const raw = (text || '').toString().trim();
 		if (!raw) return '';
+		const normalized = raw.toLowerCase().replace(/[.!?]+$/g, '').trim();
+		const noNotePatterns = [
+			/^keine\s+anmerkungen$/i,
+			/^keine\s+bemerkungen$/i,
+			/^keine\s+hinweise?$/i,
+			/^keine\s+kommentare?$/i,
+			/^nichts?\s+anzumerken$/i,
+			/^ohne\s+anmerkungen?$/i
+		];
+		if (noNotePatterns.some((pattern) => pattern.test(normalized))) return '';
 		const match = raw.match(/verbesserungsvorschlag\s*:\s*(.+)/i);
 		if (match?.[1]) return match[1].trim();
 		const fallback = raw.match(/verbesserung\s*:\s*(.+)/i);
@@ -285,7 +295,7 @@
 			<div class="card recent">
 				<div class="card-head">
 					<h3>Letzte Bewertungen</h3>
-					<span class="pill">{totalEvals}</span>
+					<span class="pill">4</span>
 				</div>
 				{#if myEvals.length === 0}
 					<p class="muted">Noch keine Bewertungen vorhanden.</p>
