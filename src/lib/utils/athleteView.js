@@ -2,8 +2,20 @@ export const normalizeName = (v) => (v || '').toString().trim();
 export const normalizeKey = (v) => normalizeName(v).toLowerCase();
 
 export const ts = (value) => {
-	const t = Date.parse(value || '');
-	return Number.isNaN(t) ? 0 : t;
+	if (!value) return 0;
+	if (value instanceof Date) return Number.isNaN(value.getTime()) ? 0 : value.getTime();
+	if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+	const text = value.toString().trim();
+	const parsed = Date.parse(text);
+	if (!Number.isNaN(parsed)) return parsed;
+	const match = text.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/);
+	if (!match) return 0;
+	const day = Number(match[1]);
+	const month = Number(match[2]);
+	let year = Number(match[3]);
+	if (year < 100) year += 2000;
+	const fallback = new Date(year, month - 1, day).getTime();
+	return Number.isNaN(fallback) ? 0 : fallback;
 };
 
 export function dedupeEvaluations(list = []) {

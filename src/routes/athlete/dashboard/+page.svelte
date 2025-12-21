@@ -1,4 +1,4 @@
-<script>
+﻿<script>
 	import { onDestroy, onMount } from 'svelte';
 	import NavBar from '$lib/NavBar.svelte';
 	import { evaluations as evaluationStore, normalizeEval } from '$lib/stores/evaluations';
@@ -22,6 +22,61 @@
 			/* ignore */
 		}
 		return value || '';
+	};
+
+	const ageCategory = (age) => {
+		const num = Number(age);
+		if (!Number.isFinite(num)) return null;
+		if (num < 16) return 'youth';
+		if (num >= 16 && num <= 18) return 'cadets';
+		if (num >= 19 && num <= 21) return 'juniors';
+		if (num > 21) return 'elite';
+		return null;
+	};
+
+	const categoryLabels = {
+		youth: 'Youth',
+		cadets: 'Cadets',
+		juniors: 'Juniors',
+		elite: 'Elite'
+	};
+	const extractImprovement = (text) => {
+		const raw = (text || '').toString().trim();
+		if (!raw) return '';
+		const match = raw.match(/verbesserungsvorschlag\s*:\s*(.+)/i);
+		if (match?.[1]) return match[1].trim();
+		const fallback = raw.match(/verbesserung\s*:\s*(.+)/i);
+		if (fallback?.[1]) return fallback[1].trim();
+		return raw;
+	};
+
+	const splitSuggestions = (text) =>
+		(text || '')
+			.split(/(?:\r?\n|;)/)
+			.map((part) => part.replace(/^[-*\d.\s]+/, '').trim())
+			.filter(Boolean);
+
+	const buildNextStepsFromFeedback = (suggestion, discipline, coachName) => {
+		const chunks = splitSuggestions(suggestion);
+		const focus = chunks[0] || suggestion;
+		const extra = chunks[1];
+		const steps = [];
+		steps.push(
+			`Fokus im ${discipline || 'Training'}: ${focus}. Trainiere das 2x pro Woche (je 30-45 Min) in 3 Serien a 5 Wiederholungen.`
+		);
+		if (extra) {
+			steps.push(
+				`Zusatzpunkt: ${extra}. Baue pro Einheit mindestens 2 Korrekturen ein und notiere, was besser klappt.`
+			);
+		} else {
+			steps.push(
+				'Setze dir ein klares Messziel (z.B. sauberer Ablauf ohne Unterbruch) und prüfe es am Ende jeder Einheit.'
+			);
+		}
+		steps.push(
+			`Plane eine kurze Technik-Session mit ${coachName || 'deinem Hauptcoach'} und lass dir gezielt Feedback geben.`
+		);
+		return steps;
 	};
 
 	let athletes = data?.athletes || [];
@@ -71,19 +126,41 @@
 		.sort((a, b) => ts(b?.createdAt || b?.date) - ts(a?.createdAt || a?.date));
 
 	$: lastEval = myEvals[0] || null;
-	$: avgScore = (() => {
-		const scores = myEvals.map((ev) => Number(ev?.score)).filter((v) => Number.isFinite(v));
+	const currentYear = new Date().getFullYear();
+	$: athletesByKey = (() => {
+		const map = new Map();
+		for (const ath of athletes || []) {
+			const key = normalizeKey(ath?.athlete || ath?.name);
+			if (!key || map.has(key)) continue;
+			map.set(key, ath);
+		}
+		return map;
+	})();
+	$: activeCategory = ageCategory(activeOption?.age);
+	$: categoryEvals = mergedEvals.filter((ev) => {
+		const stamp = ts(ev?.createdAt || ev?.date);
+		if (!stamp || new Date(stamp).getFullYear() !== currentYear) return false;
+		const key = normalizeKey(ev?.athlete || ev?.name);
+		if (!key) return false;
+		const ath = athletesByKey.get(key);
+		if (!ath) return false;
+		return activeCategory && ageCategory(ath?.age) === activeCategory;
+	});
+	$: categoryAvgScore = (() => {
+		const scores = categoryEvals.map((ev) => Number(ev?.score)).filter((v) => Number.isFinite(v));
 		if (!scores.length) return '-';
 		const sum = scores.reduce((a, b) => a + b, 0);
 		return Math.round(sum / scores.length);
 	})();
+	$: categoryEvalCount = categoryEvals.length;
+	$: categoryLabel = activeCategory ? categoryLabels[activeCategory] : 'Alterskategorie';
 	$: bestScore = (() => {
 		const scores = myEvals.map((ev) => Number(ev?.score)).filter((v) => Number.isFinite(v));
 		return scores.length ? Math.max(...scores) : '-';
 	})();
 	$: totalEvals = myEvals.length;
 	$: lastDiscipline = lastEval?.discipline || 'Noch keine Disziplin erfasst';
-	$: lastCoach = lastEval?.coach || activeOption?.coach || 'Coach noch nicht hinterlegt';
+	$: lastCoach = activeOption?.coach || lastEval?.coach || 'Coach noch nicht hinterlegt';
 	$: disciplineStats = (() => {
 		const map = new Map();
 		for (const ev of myEvals) {
@@ -113,14 +190,19 @@
 			}))
 			.sort((a, b) => b.avg - a.avg);
 	})();
-	$: nextSteps = (() => {
-		const steps = [];
+		$: nextSteps = (() => {
 		if (!myEvals.length) {
 			return [
 				'Bitte deinen Coach um eine erste Bewertung, um dein Dashboard zu füllen.',
 				'Trage deine nächste Trainingseinheit ein, damit Fortschritte sichtbar werden.'
 			];
 		}
+		const feedbackText = lastEval?.comment || lastEval?.text || '';
+		const improvement = extractImprovement(feedbackText);
+		if (improvement) {
+			return buildNextStepsFromFeedback(improvement, lastDiscipline, lastCoach).slice(0, 3);
+		}
+		const steps = [];
 		const weakest = disciplineStats[disciplineStats.length - 1];
 		if (typeof avgScore === 'number' && avgScore < 80) {
 			steps.push('Ziel: Durchschnitt in den nächsten 4 Wochen um 5 Punkte steigern.');
@@ -128,7 +210,7 @@
 		if (weakest?.name) {
 			steps.push(`Fokus auf ${weakest.name}: zusätzliche Technik-Einheit mit dem Coach planen.`);
 		}
-		if (lastEval?.comment) {
+		if (lastEval?.comment || lastEval?.text) {
 			steps.push('Letztes Feedback nochmals prüfen und konkrete Übungen ableiten.');
 		}
 		return steps.slice(0, 3);
@@ -151,17 +233,17 @@
 
 		<section class="stat-grid">
 			<div class="card stat">
-				<div class="stat-label">Durchschnitt</div>
-				<div class="stat-value">{avgScore}</div>
-				<div class="stat-sub">Letzte {totalEvals || 0} Bewertungen</div>
+				<div class="stat-label">Kategorie-Schnitt</div>
+				<div class="stat-value">{categoryAvgScore}</div>
+				<div class="stat-sub">Ø aller {categoryLabel}-Bewertungen {currentYear} · {categoryEvalCount} Einträge</div>
 			</div>
 			<div class="card stat">
-				<div class="stat-label">Beste Bewertung</div>
+				<div class="stat-label">Aktuelle Bewertung</div>
 				<div class="stat-value">{bestScore}</div>
 				<div class="stat-sub">{lastDiscipline}</div>
 			</div>
 			<div class="card stat">
-				<div class="stat-label">Coach</div>
+				<div class="stat-label">Hauptcoach</div>
 				<div class="stat-value">{lastCoach}</div>
 				<div class="stat-sub">{activeOption?.discipline || 'Disziplin offen'}</div>
 			</div>
@@ -184,7 +266,7 @@
 									<div>
 										<div class="eval-name">{ev.discipline || 'Disziplin'}</div>
 										<div class="eval-meta">
-											{formatDate(ev.date || ev.createdAt)} · {ev.coach || 'Coach'}
+											{formatDate(ev.date || ev.createdAt)} - {ev.coach || 'Coach'}
 										</div>
 									</div>
 								</div>
@@ -208,11 +290,17 @@
 				{#if nextSteps.length === 0}
 					<p class="muted">Keine Vorschläge verfügbar.</p>
 				{:else}
-					<ul>
+					<ol class="steps">
 						{#each nextSteps as step, i}
-							<li><span class="step-index">{i + 1}</span> {step}</li>
+							<li class="step">
+								<span class="step-index">{i + 1}</span>
+								<div class="step-body">
+									<div class="step-title">Schritt {i + 1}</div>
+									<div class="step-text">{step}</div>
+								</div>
+							</li>
 						{/each}
-					</ul>
+					</ol>
 				{/if}
 			</div>
 
@@ -254,9 +342,12 @@
 	.score-badge.gray{background:#f3f4f6;color:#4b5563}
 
 
-	.goals ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
-	.goals li{display:flex;gap:10px;align-items:flex-start}
-	.step-index{width:26px;height:26px;border-radius:8px;background:#0f1724;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;margin-top:2px}
+	.steps{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:12px}
+	.step{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid #eef1f5;border-radius:12px;background:#f8fafc}
+	.step-index{width:30px;height:30px;border-radius:9px;background:#0f1724;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;margin-top:2px;flex:0 0 30px}
+	.step-body{display:flex;flex-direction:column;gap:4px}
+	.step-title{font-weight:700;font-size:13px;color:#0f1724;text-transform:uppercase;letter-spacing:.06em}
+	.step-text{color:#111827;font-size:14px;line-height:1.4}
 
 
 	@media (max-width:1000px){
@@ -269,3 +360,7 @@
 		.page-header h1{font-size:22px}
 	}
 </style>
+
+
+
+

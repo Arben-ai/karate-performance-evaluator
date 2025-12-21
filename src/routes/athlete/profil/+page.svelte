@@ -154,7 +154,7 @@
 		<header class="page-header">
 			<div>
 				<h1>Mein Profil</h1>
-				<p class="muted">Persönliche Daten und Einstellungen</p>
+				<p class="muted">Persönliche Daten</p>
 			</div>
 		</header>
 

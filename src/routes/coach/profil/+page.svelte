@@ -99,7 +99,7 @@
   <main class="page container">
     <header class="page-header">
       <h1>Mein Profil</h1>
-      <p class="muted">Persönliche Daten und Einstellungen</p>
+      <p class="muted">Persönliche Daten</p>
     </header>
 
     <section class="layout">
