@@ -35,6 +35,7 @@
   let search2 = '';
   let open1 = false;
   let open2 = false;
+  let compareMode = false;
 
   const dedupe = (list = []) => {
     const map = new Map();
@@ -91,6 +92,11 @@
 
   $: if (selected1 && selected1 === selected2) {
     selected2 = '';
+  }
+  $: if (!compareMode) {
+    selected2 = '';
+    search2 = '';
+    open2 = false;
   }
 
   function setSelection(slot, term) {
@@ -241,6 +247,10 @@
   const tooltipDefaults = { visible: false, label: '', current: 0, benchmark: 0, x: 0, y: 0 };
   let tooltip1 = { ...tooltipDefaults };
   let tooltip2 = { ...tooltipDefaults };
+  let radar1El;
+  let radar2El;
+  let radarWrap1El;
+  let radarWrap2El;
 
   function pointCoord(items, idx, size) {
     const max = 100;
@@ -253,16 +263,36 @@
     return { x, y };
   }
 
-  function showTip(chart, items, bench, idx, size) {
+  function showTip(chart, items, bench, idx, size, svgEl, wrapEl) {
     const pos = pointCoord(items, idx, size);
+    const center = size / 2;
+    const angle = (Math.PI * 2 * idx) / items.length - Math.PI / 2;
+    const r = size / 2 - 28;
+    const outDist = r + 56;
+    const posOut = {
+      x: center + Math.cos(angle) * outDist,
+      y: center + Math.sin(angle) * outDist
+    };
     const benchVal = Number(bench?.[idx]?.value) || 0;
+    let x = pos.x;
+    let y = pos.y;
+    if (svgEl && wrapEl) {
+      const svgRect = svgEl.getBoundingClientRect();
+      const wrapRect = wrapEl.getBoundingClientRect();
+      const scale = svgRect.width / size;
+      x = svgRect.left - wrapRect.left + posOut.x * scale;
+      y = svgRect.top - wrapRect.top + posOut.y * scale;
+      const margin = 16;
+      x = Math.max(margin, Math.min(wrapRect.width - margin, x));
+      y = Math.max(margin, Math.min(wrapRect.height - margin, y));
+    }
     const state = {
       visible: true,
       label: items[idx]?.label || 'Kriterium',
       current: Number(items[idx]?.value) || 0,
       benchmark: benchVal,
-      x: pos.x,
-      y: pos.y
+      x,
+      y
     };
     if (chart === 1) tooltip1 = state;
     else tooltip2 = state;
@@ -337,9 +367,8 @@
   $: timeline1 = buildTimeline(selected1);
   $: timeline2 = buildTimeline(selected2);
 
-  const chartDims = (labels = []) => {
+  const chartDims = (labels = [], height = 220) => {
     const width = 640;
-    const height = 220;
     const pad = { left: 50, right: 20, top: 10, bottom: 36 };
     const innerW = width - pad.left - pad.right;
     const innerH = height - pad.top - pad.bottom;
@@ -366,8 +395,9 @@
       v == null ? null : { x: dims.xPos(idx), y: dims.yPos(v), label: labels[idx], value: v }
     );
 
-  $: dims1 = chartDims(timeline1?.labels || []);
-  $: dims2 = chartDims(timeline2?.labels || []);
+  $: lineHeight = compareMode ? 220 : 170;
+  $: dims1 = chartDims(timeline1?.labels || [], lineHeight);
+  $: dims2 = chartDims(timeline2?.labels || [], lineHeight);
 
   const emptyLineTip = { visible: false, x: 0, y: 0, label: '', rows: [] };
   let lineTip1 = { ...emptyLineTip };
@@ -411,7 +441,7 @@
       <p class="muted">Einzelne Athleten analysieren oder zwei Athleten direkt vergleichen</p>
     </header>
 
-        <section class="filters bare">
+    <section class={`filters bare ${compareMode ? 'compare' : 'single'}`}>
       <div class="field-box">
         <div class="field">
           <label for="athlete1">1. Athlet auswählen</label>
@@ -445,51 +475,61 @@
         </div>
       </div>
 
-      <div class="field-box">
-        <div class="field">
-          <label for="athlete2">2. Athlet auswählen</label>
-          <div class="select-wrap">
-            <input
-              id="athlete2"
-              type="search"
-              placeholder="Athlet auswählen oder tippen..."
-              bind:value={search2}
-              on:input={(e) => { setSelection(2, e.target.value); open2 = true; }}
-              on:focus={() => (open2 = true)}
-              on:blur={() => setTimeout(() => (open2 = false), 80)}
-            />
-            {#if open2 && filtered2.length}
-              <div class="suggest-panel">
-                {#each filtered2 as opt}
-                  <button
-                    type="button"
-                    class="suggest-item"
-                    on:mousedown|preventDefault={() => setSelection(2, opt.label)}
-                  >
-                    {opt.label}
-                  </button>
-                {/each}
-              </div>
+      {#if compareMode}
+        <div class="field-box">
+          <div class="field">
+            <label for="athlete2">2. Athlet auswählen</label>
+            <div class="select-wrap">
+              <input
+                id="athlete2"
+                type="search"
+                placeholder="Athlet auswählen oder tippen..."
+                bind:value={search2}
+                on:input={(e) => { setSelection(2, e.target.value); open2 = true; }}
+                on:focus={() => (open2 = true)}
+                on:blur={() => setTimeout(() => (open2 = false), 80)}
+              />
+              {#if open2 && filtered2.length}
+                <div class="suggest-panel">
+                  {#each filtered2 as opt}
+                    <button
+                      type="button"
+                      class="suggest-item"
+                      on:mousedown|preventDefault={() => setSelection(2, opt.label)}
+                    >
+                      {opt.label}
+                    </button>
+                  {/each}
+                </div>
+              {/if}
+            </div>
+            {#if selected2}
+              <div class="selected-hint">Ausgewählt: {labelForSelection(selected2)}</div>
             {/if}
           </div>
-          {#if selected2}
-            <div class="selected-hint">Ausgewählt: {labelForSelection(selected2)}</div>
-          {/if}
         </div>
+      {/if}
+      <div class="field-box compare-toggle">
+        <label class="toggle">
+          <input type="checkbox" bind:checked={compareMode} />
+          <span class="toggle-ui"></span>
+          <span>Vergleich aktivieren</span>
+        </label>
+        <p class="toggle-hint">Zweiten Athleten nur bei Bedarf einblenden.</p>
       </div>
     </section>
 
 
 
-    <section class="chart-grid competence-two">
+    <section class={`chart-grid ${compareMode ? 'grid-compare' : 'grid-single'}`}>
       <div class="card chart">
         <div class="chart-header with-score">
           <span>Kompetenzprofil {stats1.name || '-'}</span>
           <span class="score-tag">{stats1.current !== '-' ? `${stats1.current} Punkte` : '-'}</span>
         </div>
         {#if stats1.details && stats1.details.length}
-          <div class="chart-body">
-            <svg viewBox="0 0 360 360" class="radar">
+          <div class="chart-body" bind:this={radarWrap1El}>
+            <svg viewBox="0 0 360 360" class="radar" bind:this={radar1El}>
               <defs>
                 <linearGradient id="radar1Fill" x1="0" x2="0" y1="0" y2="1">
                   <stop offset="0%" stop-color="#e11d2f" stop-opacity="0.35" />
@@ -510,7 +550,7 @@
 
               {#each stats1.details as item, idx}
                 <g
-                  on:mouseenter={() => showTip(1, stats1.details, stats1.bench, idx, 360)}
+                  on:mouseenter={() => showTip(1, stats1.details, stats1.bench, idx, 360, radar1El, radarWrap1El)}
                   on:mouseleave={() => hideTip(1)}
                 >
                   {#if item}
@@ -523,12 +563,26 @@
                       stroke-width="2"
                     />
                     <circle
+                      cx={pointCoord(stats1.details, idx, 360).x}
+                      cy={pointCoord(stats1.details, idx, 360).y}
+                      r="14"
+                      fill="transparent"
+                      pointer-events="all"
+                    />
+                    <circle
                       cx={pointCoord(stats1.bench, idx, 360).x}
                       cy={pointCoord(stats1.bench, idx, 360).y}
                       r="5"
                       fill="#94a3b8"
                       stroke="#fff"
                       stroke-width="2"
+                    />
+                    <circle
+                      cx={pointCoord(stats1.bench, idx, 360).x}
+                      cy={pointCoord(stats1.bench, idx, 360).y}
+                      r="12"
+                      fill="transparent"
+                      pointer-events="all"
                     />
                   {#if ['Fokus', 'Geschwindigkeit'].includes(item.label)}
                     <text
@@ -582,111 +636,127 @@
         {/if}
       </div>
 
-      <div class="card chart">
-        <div class="chart-header with-score">
-          <span>Kompetenzprofil {stats2.name || '-'}</span>
-          <span class="score-tag">{stats2.current !== '-' ? `${stats2.current} Punkte` : '-'}</span>
-        </div>
-        {#if stats2.details && stats2.details.length}
-          <div class="chart-body">
-            <svg viewBox="0 0 360 360" class="radar">
-              <defs>
-                <linearGradient id="radar2Fill" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.35" />
-                  <stop offset="100%" stop-color="#0ea5e9" stop-opacity="0.15" />
-                </linearGradient>
-              </defs>
-              {#each [20,40,60,80,100] as ring}
-                <polygon
-                  points={radarPoints(stats2.details.map((d) => ({ ...d, value: ring })), 360)}
-                  fill="none"
-                  stroke="#e5e7eb"
-                  stroke-width="1"
-                  opacity="0.8"
-                />
-              {/each}
-              <polygon points={radarPoints(stats2.bench, 360)} fill="none" stroke="#94a3b8" stroke-dasharray="6 4" stroke-width="2" />
-              <polygon points={radarPoints(stats2.details, 360)} fill="url(#radar2Fill)" stroke="#0ea5e9" stroke-width="2.5" />
+      {#if compareMode}
+        <div class="card chart">
+          <div class="chart-header with-score">
+            <span>Kompetenzprofil {stats2.name || '-'}</span>
+            <span class="score-tag">{stats2.current !== '-' ? `${stats2.current} Punkte` : '-'}</span>
+          </div>
+          {#if stats2.details && stats2.details.length}
+            <div class="chart-body" bind:this={radarWrap2El}>
+              <svg viewBox="0 0 360 360" class="radar" bind:this={radar2El}>
+                <defs>
+                  <linearGradient id="radar2Fill" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.35" />
+                    <stop offset="100%" stop-color="#0ea5e9" stop-opacity="0.15" />
+                  </linearGradient>
+                </defs>
+                {#each [20,40,60,80,100] as ring}
+                  <polygon
+                    points={radarPoints(stats2.details.map((d) => ({ ...d, value: ring })), 360)}
+                    fill="none"
+                    stroke="#e5e7eb"
+                    stroke-width="1"
+                    opacity="0.8"
+                  />
+                {/each}
+                <polygon points={radarPoints(stats2.bench, 360)} fill="none" stroke="#94a3b8" stroke-dasharray="6 4" stroke-width="2" />
+                <polygon points={radarPoints(stats2.details, 360)} fill="url(#radar2Fill)" stroke="#0ea5e9" stroke-width="2.5" />
 
-              {#each stats2.details as item, idx}
-                <g
-                  on:mouseenter={() => showTip(2, stats2.details, stats2.bench, idx, 360)}
-                  on:mouseleave={() => hideTip(2)}
-                >
-                  <circle
-                    cx={pointCoord(stats2.details, idx, 360).x}
-                    cy={pointCoord(stats2.details, idx, 360).y}
-                    r="6"
-                    fill="#0ea5e9"
-                    stroke="#fff"
-                    stroke-width="2"
-                  />
-                  <circle
-                    cx={pointCoord(stats2.bench, idx, 360).x}
-                    cy={pointCoord(stats2.bench, idx, 360).y}
-                    r="5"
-                    fill="#94a3b8"
-                    stroke="#fff"
-                    stroke-width="2"
-                  />
-                  {#if ['Fokus', 'Geschwindigkeit'].includes(item.label)}
-                    <text
-                      x={180 + 158 * Math.cos((Math.PI * 2 * idx) / stats2.details.length - Math.PI / 2)}
-                      y={180 + 158 * Math.sin((Math.PI * 2 * idx) / stats2.details.length - Math.PI / 2) + 6}
-                      text-anchor="middle"
-                      dominant-baseline="middle"
-                      fill="#4b5563"
-                      font-size="12"
-                      font-weight="600"
-                    >
-                      {item.label}
-                    </text>
-                  {:else}
-                    <text
-                      x={180 + 158 * Math.cos((Math.PI * 2 * idx) / stats2.details.length - Math.PI / 2)}
-                      y={180 + 158 * Math.sin((Math.PI * 2 * idx) / stats2.details.length - Math.PI / 2) - 6}
-                      text-anchor="middle"
-                      dominant-baseline="middle"
-                      fill="#4b5563"
-                      font-size="12"
-                      font-weight="600"
-                    >
-                      {item.label}
-                    </text>
-                  {/if}
-                </g>
-              {/each}
-            </svg>
-            {#if tooltip2.visible}
-              <div class="tooltip" style={`left:${tooltip2.x}px; top:${tooltip2.y}px;`}>
-                <div class="tooltip-title">{tooltip2.label}</div>
-                <div class="tooltip-row"><span>Aktuell:</span><span class="current">{tooltip2.current}</span></div>
-                <div class="tooltip-row"><span>Benchmark:</span><span class="bench">{tooltip2.benchmark}</span></div>
-                <div class="tooltip-row">
-                  <span>Differenz:</span>
-                  <span class={tooltip2.current - tooltip2.benchmark >= 0 ? 'pos' : 'neg'}>
-                    {tooltip2.current - tooltip2.benchmark >= 0 ? '+' : ''}{tooltip2.current - tooltip2.benchmark}
-                  </span>
+                {#each stats2.details as item, idx}
+                  <g
+                    on:mouseenter={() => showTip(2, stats2.details, stats2.bench, idx, 360, radar2El, radarWrap2El)}
+                    on:mouseleave={() => hideTip(2)}
+                  >
+                    <circle
+                      cx={pointCoord(stats2.details, idx, 360).x}
+                      cy={pointCoord(stats2.details, idx, 360).y}
+                      r="6"
+                      fill="#0ea5e9"
+                      stroke="#fff"
+                      stroke-width="2"
+                    />
+                    <circle
+                      cx={pointCoord(stats2.details, idx, 360).x}
+                      cy={pointCoord(stats2.details, idx, 360).y}
+                      r="14"
+                      fill="transparent"
+                      pointer-events="all"
+                    />
+                    <circle
+                      cx={pointCoord(stats2.bench, idx, 360).x}
+                      cy={pointCoord(stats2.bench, idx, 360).y}
+                      r="5"
+                      fill="#94a3b8"
+                      stroke="#fff"
+                      stroke-width="2"
+                    />
+                    <circle
+                      cx={pointCoord(stats2.bench, idx, 360).x}
+                      cy={pointCoord(stats2.bench, idx, 360).y}
+                      r="12"
+                      fill="transparent"
+                      pointer-events="all"
+                    />
+                    {#if ['Fokus', 'Geschwindigkeit'].includes(item.label)}
+                      <text
+                        x={180 + 158 * Math.cos((Math.PI * 2 * idx) / stats2.details.length - Math.PI / 2)}
+                        y={180 + 158 * Math.sin((Math.PI * 2 * idx) / stats2.details.length - Math.PI / 2) + 6}
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        fill="#4b5563"
+                        font-size="12"
+                        font-weight="600"
+                      >
+                        {item.label}
+                      </text>
+                    {:else}
+                      <text
+                        x={180 + 158 * Math.cos((Math.PI * 2 * idx) / stats2.details.length - Math.PI / 2)}
+                        y={180 + 158 * Math.sin((Math.PI * 2 * idx) / stats2.details.length - Math.PI / 2) - 6}
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        fill="#4b5563"
+                        font-size="12"
+                        font-weight="600"
+                      >
+                        {item.label}
+                      </text>
+                    {/if}
+                  </g>
+                {/each}
+              </svg>
+              {#if tooltip2.visible}
+                <div class="tooltip" style={`left:${tooltip2.x}px; top:${tooltip2.y}px;`}>
+                  <div class="tooltip-title">{tooltip2.label}</div>
+                  <div class="tooltip-row"><span>Aktuell:</span><span class="current">{tooltip2.current}</span></div>
+                  <div class="tooltip-row"><span>Benchmark:</span><span class="bench">{tooltip2.benchmark}</span></div>
+                  <div class="tooltip-row">
+                    <span>Differenz:</span>
+                    <span class={tooltip2.current - tooltip2.benchmark >= 0 ? 'pos' : 'neg'}>
+                      {tooltip2.current - tooltip2.benchmark >= 0 ? '+' : ''}{tooltip2.current - tooltip2.benchmark}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            {/if}
-          </div>
-          <div class="legend">
-            <div class="dot current"></div><span>Aktuell</span>
-            <div class="dot bench"></div><span>Benchmark</span>
-          </div>
-        {:else}
-          <div class="chart-body muted">Keine Bewertung vorhanden.</div>
-        {/if}
-      </div>
+              {/if}
+            </div>
+            <div class="legend">
+              <div class="dot current"></div><span>Aktuell</span>
+              <div class="dot bench"></div><span>Benchmark</span>
+            </div>
+          {:else}
+            <div class="chart-body muted">Keine Bewertung vorhanden.</div>
+          {/if}
+        </div>
+      {/if}
     </section>
 
-    <section class="line-charts">
+    <section class={`line-charts ${compareMode ? 'grid-compare' : 'grid-single'}`}>
       <div class="card line-card">
         <div class="chart-header">Entwicklung über Zeit {stats1.name || ''}</div>
           {#if timeline1}
             <div class="line-chart">
-            <svg viewBox={`0 0 ${dims1.width} ${dims1.height}`} preserveAspectRatio="none" on:mouseleave={() => hideLineTip(1)}>
+            <svg viewBox={`0 0 ${dims1.width} ${dims1.height}`} preserveAspectRatio="xMidYMid meet" on:mouseleave={() => hideLineTip(1)}>
               <g class="line-grid">
                 {#each [0,25,50,75,100] as tick}
                   <line
@@ -792,115 +862,117 @@
           {/if}
         </div>
 
-      <div class="card line-card">
-        <div class="chart-header">Entwicklung über Zeit {stats2.name || ''}</div>
-          {#if timeline2}
-            <div class="line-chart">
-            <svg viewBox={`0 0 ${dims2.width} ${dims2.height}`} preserveAspectRatio="none" on:mouseleave={() => hideLineTip(2)}>
-              <g class="line-grid">
-                {#each [0,25,50,75,100] as tick}
-                  <line
-                    x1="0"
-                    x2={dims2.width}
-                    y1={dims2.yPos(tick)}
-                    y2={dims2.yPos(tick)}
-                    stroke="#e5e7eb"
-                    stroke-dasharray="4 4"
-                  />
-                  <text x="12" y={dims2.yPos(tick) + 4} fill="#6b7280" font-size="12">{tick}</text>
-                {/each}
-              </g>
-
-              {#each timeline2.series as s (s.name)}
-                <path
-                  d={buildPath(timeline2.labels, s.values, dims2)}
-                  fill="none"
-                  stroke={s.color}
-                  stroke-width="3"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                {#each pointList(timeline2.labels, s.values, dims2) as pt, idx (idx)}
-                  {#if pt}
-                    <circle
-                      cx={pt.x}
-                      cy={pt.y}
-                      r="8"
-                      fill={s.color}
-                      stroke="#fff"
-                      stroke-width="2.5"
-                    >
-                      <title>{s.name}: {pt.value}</title>
-                    </circle>
-                    <rect
-                      x={pt.x - 12}
-                      y={pt.y - 12}
-                      width="24"
-                      height="24"
-                      fill="transparent"
-                      on:mouseenter={() => showLineTip(2, idx, dims2)}
-                      on:mouseleave={() => hideLineTip(2)}
+      {#if compareMode}
+        <div class="card line-card">
+          <div class="chart-header">Entwicklung über Zeit {stats2.name || ''}</div>
+            {#if timeline2}
+              <div class="line-chart">
+              <svg viewBox={`0 0 ${dims2.width} ${dims2.height}`} preserveAspectRatio="xMidYMid meet" on:mouseleave={() => hideLineTip(2)}>
+                <g class="line-grid">
+                  {#each [0,25,50,75,100] as tick}
+                    <line
+                      x1="0"
+                      x2={dims2.width}
+                      y1={dims2.yPos(tick)}
+                      y2={dims2.yPos(tick)}
+                      stroke="#e5e7eb"
+                      stroke-dasharray="4 4"
                     />
-                  {/if}
-                {/each}
-              {/each}
+                    <text x="12" y={dims2.yPos(tick) + 4} fill="#6b7280" font-size="12">{tick}</text>
+                  {/each}
+                </g>
 
-              {#each timeline2.labels as d, idx}
-                <rect
-                  x={dims2.xPos(idx) - Math.max(18, dims2.innerW / Math.max(12, timeline2.labels.length * 2))}
-                  y="0"
-                  width={Math.max(36, (dims2.innerW / Math.max(6, timeline2.labels.length)) )}
-                  height={dims2.height}
-                  fill="transparent"
-                  on:mouseenter={() => showLineTip(2, idx, dims2)}
-                />
-              {/each}
-
-              {#each timeline2.labels as d, idx}
-                <line
-                  x1={dims2.xPos(idx)}
-                  x2={dims2.xPos(idx)}
-                  y1={dims2.pad.top}
-                  y2={dims2.height - dims2.pad.bottom}
-                  stroke="#f3f4f6"
-                />
-                <text
-                  x={dims2.xPos(idx)}
-                  y={dims2.height - 10}
-                  text-anchor="middle"
-                  fill="#6b7280"
-                  font-size="12"
-                >
-                  {formatMonth(d)}
-                </text>
-              {/each}
-              </svg>
-              <div class="line-legend">
                 {#each timeline2.series as s (s.name)}
-                  <span class="legend-item">
-                    <span class="legend-dot" style={`background:${s.color}`}></span>{s.name}
-                  </span>
+                  <path
+                    d={buildPath(timeline2.labels, s.values, dims2)}
+                    fill="none"
+                    stroke={s.color}
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  {#each pointList(timeline2.labels, s.values, dims2) as pt, idx (idx)}
+                    {#if pt}
+                      <circle
+                        cx={pt.x}
+                        cy={pt.y}
+                        r="8"
+                        fill={s.color}
+                        stroke="#fff"
+                        stroke-width="2.5"
+                      >
+                        <title>{s.name}: {pt.value}</title>
+                      </circle>
+                      <rect
+                        x={pt.x - 12}
+                        y={pt.y - 12}
+                        width="24"
+                        height="24"
+                        fill="transparent"
+                        on:mouseenter={() => showLineTip(2, idx, dims2)}
+                        on:mouseleave={() => hideLineTip(2)}
+                      />
+                    {/if}
+                  {/each}
                 {/each}
-              </div>
-              {#if lineTip2.visible}
-                <div
-                  class="line-tooltip"
-                  style={`left:${lineTip2.x}px; top:${lineTip2.y}px;`}
-                >
-                  <div class="line-tip-title">{lineTip2.label}</div>
-                  {#each lineTip2.rows as row (row.name)}
-                    <div class="line-tip-row">
-                      <span style={`color:${row.color}`}>{row.name}</span>
-                      <span>{row.value}</span>
-                    </div>
+
+                {#each timeline2.labels as d, idx}
+                  <rect
+                    x={dims2.xPos(idx) - Math.max(18, dims2.innerW / Math.max(12, timeline2.labels.length * 2))}
+                    y="0"
+                    width={Math.max(36, (dims2.innerW / Math.max(6, timeline2.labels.length)) )}
+                    height={dims2.height}
+                    fill="transparent"
+                    on:mouseenter={() => showLineTip(2, idx, dims2)}
+                  />
+                {/each}
+
+                {#each timeline2.labels as d, idx}
+                  <line
+                    x1={dims2.xPos(idx)}
+                    x2={dims2.xPos(idx)}
+                    y1={dims2.pad.top}
+                    y2={dims2.height - dims2.pad.bottom}
+                    stroke="#f3f4f6"
+                  />
+                  <text
+                    x={dims2.xPos(idx)}
+                    y={dims2.height - 10}
+                    text-anchor="middle"
+                    fill="#6b7280"
+                    font-size="12"
+                  >
+                    {formatMonth(d)}
+                  </text>
+                {/each}
+                </svg>
+                <div class="line-legend">
+                  {#each timeline2.series as s (s.name)}
+                    <span class="legend-item">
+                      <span class="legend-dot" style={`background:${s.color}`}></span>{s.name}
+                    </span>
                   {/each}
                 </div>
-              {/if}
-            </div>
-          {:else}
-            <div class="chart-body muted">Keine Bewertung vorhanden.</div>
-          {/if}
-        </div>
+                {#if lineTip2.visible}
+                  <div
+                    class="line-tooltip"
+                    style={`left:${lineTip2.x}px; top:${lineTip2.y}px;`}
+                  >
+                    <div class="line-tip-title">{lineTip2.label}</div>
+                    {#each lineTip2.rows as row (row.name)}
+                      <div class="line-tip-row">
+                        <span style={`color:${row.color}`}>{row.name}</span>
+                        <span>{row.value}</span>
+                      </div>
+                    {/each}
+                  </div>
+                {/if}
+              </div>
+            {:else}
+              <div class="chart-body muted">Keine Bewertung vorhanden.</div>
+            {/if}
+          </div>
+      {/if}
     </section>
   </main>
 </div>
@@ -911,6 +983,8 @@
   .page-header h1{margin:0;font-size:28px;font-weight:700}
   .page-header .muted{margin:4px 0 0;color:#6b7280;font-size:14px}
   .filters{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px}
+  .filters.single{grid-template-columns:1fr}
+  .filters.compare{grid-template-columns:1fr 1fr}
   .field-box{padding:12px;border:1px solid #eef1f5;border-radius:10px;background:#fff;overflow:visible}
   .field label{display:block;font-weight:700;font-size:14px;margin-bottom:6px;color:#111}
   .field input{
@@ -953,8 +1027,28 @@
     transition:background .12s ease,color .12s ease;
   }
   .suggest-item:hover{background:#f8fafc;color:#0f1724}
+  .compare-toggle{grid-column:1 / -1}
+  .toggle{display:flex;align-items:center;gap:12px;font-weight:700;font-size:14px;color:#0f1724}
+  .toggle input{position:absolute;opacity:0;pointer-events:none}
+  .toggle-ui{width:44px;height:24px;border-radius:999px;background:#e5e7eb;position:relative;transition:background .15s ease}
+  .toggle-ui::after{
+    content:'';
+    position:absolute;
+    top:3px;
+    left:3px;
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    background:#fff;
+    box-shadow:0 2px 6px rgba(15,23,36,0.2);
+    transition:transform .15s ease;
+  }
+  .toggle input:checked + .toggle-ui{background:#e11d2f}
+  .toggle input:checked + .toggle-ui::after{transform:translateX(20px)}
+  .toggle-hint{margin:6px 0 0 56px;font-size:13px;color:#6b7280}
 
   .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+  .chart-grid.grid-single{grid-template-columns:1fr}
   .chart{padding:14px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 8px 16px rgba(15,23,36,0.05)}
   .chart-header{font-weight:700;margin-bottom:10px}
   .chart-header.with-score{display:flex;justify-content:space-between;align-items:center;gap:12px}
@@ -962,6 +1056,8 @@
   .chart-body{position:relative;display:flex;align-items:center;justify-content:center;min-height:360px}
   .chart-body svg{max-width:100%}
   .chart-body.muted{color:#6b7280;font-size:14px;min-height:80px}
+  .chart-grid.grid-single .chart-body{min-height:500px}
+  .chart-grid.grid-single .chart-body .radar{width:500px;height:500px}
 
   .radar polygon:first-child{mix-blend-mode:multiply}
 
@@ -980,6 +1076,7 @@
   .legend .dot.bench{background:#94a3b8;border:2px dashed #94a3b8}
 
   .line-charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+  .line-charts.grid-single{grid-template-columns:1fr}
   .line-card{padding:14px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 8px 16px rgba(15,23,36,0.05)}
   .line-chart{display:flex;flex-direction:column;gap:10px;position:relative}
   .line-chart svg{width:100%;height:auto}
