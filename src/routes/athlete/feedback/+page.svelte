@@ -185,8 +185,8 @@
 					<button class="ghost-btn" type="button" on:click={resetFilters}>Filter zurücksetzen</button>
 				</div>
 			{:else}
-				{#each filteredFeedbacks as f}
-					<article class="feedback card">
+				{#each filteredFeedbacks as f, index}
+					<article class="feedback card reveal-item" style={`--delay:${index}`}>
 						<button
 							class="feedback-head"
 							type="button"
@@ -302,6 +302,12 @@
 
 	.feedback-list{margin-top:16px;display:flex;flex-direction:column;gap:14px}
 	.feedback{padding:14px 16px;display:flex;flex-direction:column;gap:14px}
+	.reveal-item{
+		opacity:0;
+		transform:translateY(18px);
+		animation:feedbackReveal 520ms ease forwards;
+		animation-delay:calc(var(--delay, 0) * 80ms);
+	}
 	.feedback-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;background:transparent;border:0;width:100%;text-align:left;padding:0;cursor:pointer}
 	.feedback-main{display:flex;gap:12px;align-items:flex-start}
 	.avatar{width:40px;height:40px;border-radius:50%;background:#e11d2f;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -336,6 +342,15 @@
 	.footer-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 	.empty{text-align:center;padding:26px}
 	.empty p{margin:6px 0 12px;color:#6b7280;font-size:14px}
+
+	@keyframes feedbackReveal{
+		from{opacity:0;transform:translateY(18px)}
+		to{opacity:1;transform:translateY(0)}
+	}
+
+	@media (prefers-reduced-motion: reduce){
+		.reveal-item{animation:none;opacity:1;transform:none}
+	}
 
 	@media (max-width:900px){
 		.stat-grid{grid-template-columns:1fr}

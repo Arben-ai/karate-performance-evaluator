@@ -458,8 +458,9 @@ async function submitAthlete(payload, setError, setSending) {
 						<p>Passe Suche oder Filter an, um Athleten zu sehen.</p>
 					</div>
 				{:else}
-					{#each filteredList as ath (ath._id || ath.id || ath.athlete || ath.name)}
-						<Card>
+					{#each filteredList as ath, index (ath._id || ath.id || ath.athlete || ath.name)}
+						<div class="grid-item reveal-card" style={`--delay:${index}`}>
+							<Card>
 							<div class="top">
 								<div>
 									<Badge tone="blue" label={ath.discipline || '-'} />
@@ -521,7 +522,8 @@ async function submitAthlete(payload, setError, setSending) {
 							<div class="card-actions">
 								<a class="btn ghost" href={buildEvaluateLink(ath)}>Bewerten</a>
 							</div>
-						</Card>
+							</Card>
+						</div>
 					{/each}
 				{/if}
 			</section>
@@ -660,6 +662,13 @@ async function submitAthlete(payload, setError, setSending) {
 	.filters :global(.combo .trigger){background:#fff}
 	.count-pill{background:#eef1f5;padding:6px 12px;border-radius:999px;color:#111;font-weight:600;font-size:13px;border:1px solid #e2e6ec}
 	.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+	.grid-item{display:block}
+	.reveal-card{
+		opacity:0;
+		transform:translateY(18px);
+		animation:cardReveal 520ms ease forwards;
+		animation-delay:calc(var(--delay, 0) * 70ms);
+	}
 	.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 	.top > div:first-child{flex:1;min-width:0}
 	.top-right{flex-shrink:0;align-items:flex-start}
@@ -766,6 +775,15 @@ async function submitAthlete(payload, setError, setSending) {
 	.detail .label{color:#6b7280;font-size:12px}
 	.detail .value{font-weight:700}
 	.empty{text-align:center;padding:28px}
+
+	@keyframes cardReveal{
+		from{opacity:0;transform:translateY(18px)}
+		to{opacity:1;transform:translateY(0)}
+	}
+
+	@media (prefers-reduced-motion: reduce){
+		.reveal-card{animation:none;opacity:1;transform:none}
+	}
 
 	@media (max-width: 720px){
 		.page-header{align-items:flex-start}

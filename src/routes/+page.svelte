@@ -10,7 +10,6 @@
 	const roles = [
 		{ id: 'coach', title: 'Coach', subtitle: 'Bewerten und analysieren', href: '/coach/dashboard', type: 'shield', color: '#e11d2f' },
 		{ id: 'athlet', title: 'Athlet', subtitle: 'Performance verfolgen', href: '/athlete/dashboard', type: 'trophy', color: '#0a0d14' },
-		{ id: 'referee', title: 'Schiedsrichter', subtitle: 'Wettk\u00e4mpfe bewerten', href: '/referee/dashboard', type: 'user', color: '#2f3744' }
 	];
 
 	let athletes = data?.athletes || [];
@@ -284,8 +283,8 @@
 		display:flex;
 		align-items:center;
 		justify-content:center;
-		background: linear-gradient(180deg, #0f1724 0%, #0b1220 45%, #02060b 100%);
-		color: #e6eef6;
+		background: linear-gradient(180deg, #1b2536 0%, #131c2b 45%, #0a1220 100%);
+		color: #eef4fb;
 		font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
 	}
 
@@ -294,11 +293,11 @@
 	.logo{margin-bottom:36px}
 	.logo-square{display:inline-flex;align-items:center;justify-content:center;width:66px;height:66px;border-radius:12px;background:#e11d2f;margin:0 auto 12px}
 	h1{margin:6px 0 4px;font-size:18px;font-weight:600}
-	.subtitle{color:rgba(230,238,246,0.6);margin:0 0 28px;font-size:13px}
+	.subtitle{color:rgba(238,244,251,0.75);margin:0 0 28px;font-size:13px}
 
-	.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin:20px 0 28px}
-	.card{display:flex;flex-direction:column;align-items:center;gap:14px;padding:34px;border-radius:12px;text-decoration:none;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);color:inherit;transition:transform .14s ease, box-shadow .14s ease}
-	.card:hover{transform:translateY(-6px);box-shadow:0 10px 30px rgba(2,6,11,0.6)}
+	.cards{display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:28px;margin:20px auto 28px;max-width:780px;justify-items:center}
+	.card{width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;gap:14px;padding:34px;border-radius:12px;text-decoration:none;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:inherit;transition:transform .14s ease, box-shadow .14s ease}
+	.card:hover{transform:translateY(-6px);box-shadow:0 12px 34px rgba(10,18,32,0.45)}
 	.card:active{transform:translateY(-2px);opacity:0.98}
 	.card:focus{outline:none;box-shadow:0 8px 26px rgba(225,29,47,0.12)}
 
@@ -308,9 +307,9 @@
 	.icon{width:76px;height:76px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 4px 12px rgba(2,6,11,0.5)}
 	.card-text{margin-top:6px}
 	.card-title{font-weight:600}
-	.card-sub{font-size:13px;color:rgba(230,238,246,0.55);margin-top:6px}
+	.card-sub{font-size:13px;color:rgba(238,244,251,0.7);margin-top:6px}
 
-	.hint{color:rgba(230,238,246,0.45);margin-top:18px}
+	.hint{color:rgba(238,244,251,0.6);margin-top:18px}
 
 	@media (max-width:900px){
 		.cards{grid-template-columns:1fr;max-width:420px;margin:0 auto}
@@ -336,3 +335,4 @@
 	.btn.primary{background:#e11d2f;color:#fff;border:0}
 
 </style>
+

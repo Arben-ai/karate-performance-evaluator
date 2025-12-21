@@ -126,6 +126,29 @@
 		.sort((a, b) => ts(b?.createdAt || b?.date) - ts(a?.createdAt || a?.date));
 
 	$: lastEval = myEvals[0] || null;
+	$: topPerformers = (() => {
+		const bestByAthlete = new Map();
+		for (const ev of mergedEvals || []) {
+			const key = normalizeKey(ev?.athlete || ev?.name);
+			if (!key) continue;
+			const score = Number(ev?.score);
+			if (!Number.isFinite(score)) continue;
+			const current = bestByAthlete.get(key);
+			const evTs = ts(ev?.date || ev?.createdAt);
+			const curTs = current ? ts(current?.date || current?.createdAt) : -Infinity;
+			if (!current || score > (current?.score ?? 0) || (score === (current?.score ?? 0) && evTs > curTs)) {
+				bestByAthlete.set(key, ev);
+			}
+		}
+		return Array.from(bestByAthlete.values())
+			.sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+			.slice(0, 3);
+	})();
+	$: topPerformerKeys = new Set(
+		topPerformers.map((ev) => normalizeKey(ev?.athlete || ev?.name)).filter(Boolean)
+	);
+	$: isTopPerformer =
+		!!activeOption?.label && topPerformerKeys.has(normalizeKey(activeOption?.label));
 	const currentYear = new Date().getFullYear();
 	$: athletesByKey = (() => {
 		const map = new Map();
@@ -154,10 +177,7 @@
 	})();
 	$: categoryEvalCount = categoryEvals.length;
 	$: categoryLabel = activeCategory ? categoryLabels[activeCategory] : 'Alterskategorie';
-	$: bestScore = (() => {
-		const scores = myEvals.map((ev) => Number(ev?.score)).filter((v) => Number.isFinite(v));
-		return scores.length ? Math.max(...scores) : '-';
-	})();
+	$: currentScore = Number.isFinite(Number(lastEval?.score)) ? Number(lastEval?.score) : '-';
 	$: totalEvals = myEvals.length;
 	$: lastDiscipline = lastEval?.discipline || 'Noch keine Disziplin erfasst';
 	$: lastCoach = activeOption?.coach || lastEval?.coach || 'Coach noch nicht hinterlegt';
@@ -225,6 +245,18 @@
 			<div>
 				<p class="eyebrow">Athlet</p>
 				<h1>Hallo, {activeOption?.label || 'Athlet'}</h1>
+				{#if isTopPerformer}
+					<span class="pill top-performer">
+						<span class="crown" aria-hidden="true">
+							<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M3 6l4 4 5-6 5 6 4-4"></path>
+								<path d="M4 14h16"></path>
+								<path d="M5 14l1.5 6h11L19 14"></path>
+							</svg>
+						</span>
+						Top Performer
+					</span>
+				{/if}
 				<p class="muted">
 					Dein persönliches Performance-Dashboard mit den neuesten Bewertungen und Trends.
 				</p>
@@ -239,7 +271,7 @@
 			</div>
 			<div class="card stat">
 				<div class="stat-label">Aktuelle Bewertung</div>
-				<div class="stat-value">{bestScore}</div>
+				<div class="stat-value">{currentScore}</div>
 				<div class="stat-sub">{lastDiscipline}</div>
 			</div>
 			<div class="card stat">
@@ -259,8 +291,8 @@
 					<p class="muted">Noch keine Bewertungen vorhanden.</p>
 				{:else}
 					<div class="eval-list">
-						{#each myEvals.slice(0, 4) as ev (ev.id)}
-							<div class="eval-item">
+						{#each myEvals.slice(0, 4) as ev, i (ev.id)}
+							<div class="eval-item reveal-item" style={`--delay:${i}`}>
 								<div class="eval-left">
 									<div class="eval-avatar">{(ev.athlete || '?')[0]}</div>
 									<div>
@@ -272,7 +304,9 @@
 								</div>
 								<div class="eval-score">
 									<div class="score-value">{ev.score ?? '-'}</div>
-									<div class="score-badge {badgeForScore(ev.score, ev.badge, ev.badgeTone).tone}">
+									<div
+										class={`score-badge ${badgeForScore(ev.score, ev.badge, ev.badgeTone).tone} ${badgeForScore(ev.score, ev.badge, ev.badgeTone).label === 'Sehr gut' ? 'glow' : ''}`}
+									>
 										{badgeForScore(ev.score, ev.badge, ev.badgeTone).label}
 									</div>
 								</div>
@@ -292,7 +326,7 @@
 				{:else}
 					<ol class="steps">
 						{#each nextSteps as step, i}
-							<li class="step">
+							<li class="step reveal-item" style={`--delay:${i}`}>
 								<span class="step-index">{i + 1}</span>
 								<div class="step-body">
 									<div class="step-title">Schritt {i + 1}</div>
@@ -320,16 +354,18 @@
 	.stat .stat-label{color:#6b7280;font-size:13px}
 	.stat .stat-value{font-size:26px;font-weight:800;margin:6px 0}
 	.stat .stat-sub{color:#6b7280;font-size:13px}
-	.grid-two{display:grid;grid-template-columns:2fr 1.1fr;gap:16px;margin-bottom:16px}
+	.grid-two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
 	.card-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 	.card-head h3{margin:0;font-size:17px}
-	.pill{display:inline-flex;align-items:center;justify-content:center;background:#0f1724;color:#fff;border-radius:999px;padding:6px 10px;font-weight:700;font-size:12px}
+	.pill{display:inline-flex;align-items:center;justify-content:center;background:#e11d2f;color:#fff;border-radius:999px;padding:6px 10px;font-weight:700;font-size:12px}
 	.pill.subtle{background:#f3f4f6;color:#111;border:1px solid #e6e9ee}
+	.pill.top-performer{margin-top:6px;gap:6px}
+	.pill .crown{display:inline-flex;align-items:center;justify-content:center}
 
 	.eval-list{display:flex;flex-direction:column;gap:10px}
 	.eval-item{display:flex;align-items:center;justify-content:space-between;padding:12px;border:1px solid #eef1f5;border-radius:12px;background:#f8fafc}
 	.eval-left{display:flex;align-items:center;gap:12px}
-	.eval-avatar{width:42px;height:42px;border-radius:50%;background:#0f1724;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
+	.eval-avatar{width:42px;height:42px;border-radius:50%;background:#e11d2f;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
 	.eval-name{font-weight:700}
 	.eval-meta{color:#6b7280;font-size:13px}
 	.eval-score{text-align:right}
@@ -340,14 +376,44 @@
 	.score-badge.yellow{background:#fef3c7;color:#92400e}
 	.score-badge.red{background:#fde2e1;color:#b42318}
 	.score-badge.gray{background:#f3f4f6;color:#4b5563}
+	.score-badge.glow{
+		animation:badgeGlow 2200ms ease-in-out infinite;
+		box-shadow:0 0 0 rgba(14,168,84,0);
+	}
+
+	@keyframes badgeGlow{
+		0%{box-shadow:0 0 0 rgba(14,168,84,0)}
+		50%{box-shadow:0 10px 22px rgba(14,168,84,0.25)}
+		100%{box-shadow:0 0 0 rgba(14,168,84,0)}
+	}
+
+	@media (prefers-reduced-motion: reduce){
+		.score-badge.glow{animation:none}
+	}
 
 
 	.steps{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:12px}
 	.step{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid #eef1f5;border-radius:12px;background:#f8fafc}
-	.step-index{width:30px;height:30px;border-radius:9px;background:#0f1724;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;margin-top:2px;flex:0 0 30px}
+	.step-index{width:30px;height:30px;border-radius:9px;background:#e11d2f;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;margin-top:2px;flex:0 0 30px}
 	.step-body{display:flex;flex-direction:column;gap:4px}
 	.step-title{font-weight:700;font-size:13px;color:#0f1724;text-transform:uppercase;letter-spacing:.06em}
 	.step-text{color:#111827;font-size:14px;line-height:1.4}
+
+	.reveal-item{
+		opacity:0;
+		transform:translateY(18px);
+		animation:cardReveal 520ms ease forwards;
+		animation-delay:calc(var(--delay, 0) * 90ms);
+	}
+
+	@keyframes cardReveal{
+		from{opacity:0;transform:translateY(18px)}
+		to{opacity:1;transform:translateY(0)}
+	}
+
+	@media (prefers-reduced-motion: reduce){
+		.reveal-item{animation:none;opacity:1;transform:none}
+	}
 
 
 	@media (max-width:1000px){

@@ -31,6 +31,8 @@
   let dropdownOpen = false;
   let dropdownEl;
   let coachName = 'Daniel';
+  let animating = false;
+  let animationFrame;
 
   const disciplines = ['Kata', 'Kumite'];
 
@@ -138,6 +140,10 @@
   };
 
   const setValue = (id, v) => {
+    if (animating && animationFrame) {
+      cancelAnimationFrame(animationFrame);
+      animating = false;
+    }
     const next = clampScore(v);
     criteria = criteria.map((c) => (c.id === id ? { ...c, value: next } : c));
   };
@@ -188,6 +194,35 @@
       toast = '';
     }, 2500);
   }
+
+  function startCriteriaAnimation() {
+    if (typeof window === 'undefined') return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const targets = criteria.map((c) => c.value);
+    const duration = 520;
+    const start = window.performance?.now?.() || Date.now();
+    animating = true;
+    criteria = criteria.map((c) => ({ ...c, value: 0 }));
+    const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+    const step = (now) => {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = easeOutCubic(t);
+      criteria = criteria.map((c, idx) => ({
+        ...c,
+        value: Math.round(targets[idx] * eased)
+      }));
+      if (t < 1 && animating) {
+        animationFrame = requestAnimationFrame(step);
+      } else {
+        animating = false;
+      }
+    };
+    animationFrame = requestAnimationFrame(step);
+  }
+
+  onMount(() => {
+    startCriteriaAnimation();
+  });
 </script>
 
 <div class="app-shell">

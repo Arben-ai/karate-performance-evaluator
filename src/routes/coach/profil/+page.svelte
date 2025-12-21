@@ -117,7 +117,7 @@
         <button class="logout" type="button" on:click={() => goto('/')}>{'<-'} Abmelden</button>
       </div>
 
-      <div class="card info">
+      <div class="card info reveal-card" style="--delay:0">
         <h3>Kontaktinformationen</h3>
         <div class="info-item">
           <div class="ico">✉</div>
@@ -143,7 +143,7 @@
       </div>
     </section>
 
-    <section class="card info professional">
+    <section class="card info professional reveal-card" style="--delay:1">
       <h3>Berufliche Daten</h3>
       <div class="info-item">
         <div class="ico">📅</div>
@@ -200,5 +200,21 @@
 
   @media (max-width:900px){
     .layout{grid-template-columns:1fr}
+  }
+
+  .reveal-card{
+    opacity:0;
+    transform:translateY(18px);
+    animation:cardReveal 520ms ease forwards;
+    animation-delay:calc(var(--delay, 0) * 120ms);
+  }
+
+  @keyframes cardReveal{
+    from{opacity:0;transform:translateY(18px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .reveal-card{animation:none;opacity:1;transform:none}
   }
 </style>

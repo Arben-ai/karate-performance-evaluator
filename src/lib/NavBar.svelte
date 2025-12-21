@@ -109,6 +109,20 @@
 		return items[0]?.id || '';
 	}
 
+	function handleNavClick(event, item) {
+		if (!['coach', 'athlete'].includes(role)) return;
+		if (currentPath === item.href) {
+			event.preventDefault();
+			if (typeof window !== 'undefined') window.location.href = item.href;
+		}
+	}
+
+	function handleLogoClick(event) {
+		if (!['coach', 'athlete'].includes(role)) return;
+		event.preventDefault();
+		if (typeof window !== 'undefined') window.location.href = logoHref;
+	}
+
 	$: currentPath = $page?.url?.pathname || '';
 	$: navItems = navItemsByRole[role] || navItemsByRole.coach;
 	$: activeId = deriveActive(currentPath);
@@ -125,7 +139,7 @@
 <nav class="topbar">
 	<div class="container topbar-inner">
 		<div class="top-left">
-			<a class="logo" href={logoHref} sveltekit:prefetch aria-label="Zur Startseite">
+			<a class="logo" href={logoHref} sveltekit:prefetch aria-label="Zur Startseite" on:click={handleLogoClick}>
 				<span class="logo-square" aria-hidden="true">{@html trophy()}</span>
 				<span class="logo-text">Karate Performance Evaluator</span>
 			</a>
@@ -137,6 +151,7 @@
 					href={item.href}
 					sveltekit:prefetch
 					aria-current={activeId === item.id ? 'page' : undefined}
+					on:click={(event) => handleNavClick(event, item)}
 				>
 					<span class="nav-ico" aria-hidden="true">{@html icon(item.icon)}</span>
 					<span class="nav-label">{item.label}</span>

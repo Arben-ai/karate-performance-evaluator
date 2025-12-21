@@ -342,6 +342,7 @@
 					<span class="score-tag">{stats1.current !== '-' ? `${stats1.current} Punkte` : '-'}</span>
 				</div>
 				{#if stats1.details && stats1.details.length}
+					{#key selectedAthlete}
 					<div class="chart-body" bind:this={radarWrap1El}>
 						<svg viewBox="0 0 360 360" class="radar" bind:this={radar1El}>
 							<defs>
@@ -360,7 +361,8 @@
 								/>
 							{/each}
 							<polygon points={radarPoints(stats1.bench, 360)} fill="none" stroke="#94a3b8" stroke-dasharray="6 4" stroke-width="2" />
-							<polygon points={radarPoints(stats1.details, 360)} fill="url(#radar1Fill)" stroke="#e11d2f" stroke-width="2.5" />
+							<g class="radar-animate">
+								<polygon points={radarPoints(stats1.details, 360)} fill="url(#radar1Fill)" stroke="#e11d2f" stroke-width="2.5" />
 
 							{#each stats1.details as item, idx}
 								<g
@@ -426,6 +428,7 @@
 									{/if}
 								</g>
 							{/each}
+							</g>
 						</svg>
 						{#if tooltip1.visible}
 							<div class="tooltip" style={`left:${tooltip1.x}px; top:${tooltip1.y}px;`}>
@@ -445,6 +448,7 @@
 						<div class="dot current"></div><span>Aktuell</span>
 						<div class="dot bench"></div><span>Benchmark</span>
 					</div>
+					{/key}
 				{:else}
 					<div class="chart-body muted">Keine Bewertung vorhanden.</div>
 				{/if}
@@ -455,6 +459,7 @@
 			<div class="card line-card">
 				<div class="chart-header">Entwicklung über Zeit {stats1.name || ''}</div>
 				{#if timeline1}
+					{#key selectedAthlete}
 					<div class="line-chart" bind:this={lineWrap1El}>
 						<svg bind:this={lineSvg1El} viewBox={`0 0 ${dims1.width} ${dims1.height}`} preserveAspectRatio="xMidYMid meet" on:mouseleave={() => hideLineTip()}>
 							<g class="line-grid">
@@ -473,6 +478,7 @@
 
 							{#each timeline1.series as s (s.name)}
 								<path
+									class="line-path"
 									d={buildPath(timeline1.labels, s.values, dims1)}
 									fill="none"
 									stroke={s.color}
@@ -483,12 +489,14 @@
 								{#each pointList(timeline1.labels, s.values, dims1) as pt, idx (idx)}
 									{#if pt}
 										<circle
+											class="line-point"
 											cx={pt.x}
 											cy={pt.y}
 											r="8"
 											fill={s.color}
 											stroke="#fff"
 											stroke-width="2.5"
+											style={`--idx:${idx}`}
 										>
 											<title>{s.name}: {pt.value}</title>
 										</circle>
@@ -554,6 +562,7 @@
 							</div>
 						{/if}
 					</div>
+					{/key}
 				{:else}
 					<div class="chart-body muted">Keine Bewertung vorhanden.</div>
 				{/if}
@@ -581,6 +590,10 @@
 	.chart-grid.grid-single .chart-body .radar{width:500px;height:500px}
 
 	.radar polygon:first-child{mix-blend-mode:multiply}
+	.radar-animate{
+		transform-origin:180px 180px;
+		animation:radarGrow 520ms ease forwards;
+	}
 
 	.tooltip{position:absolute;min-width:180px;background:#fff;border-radius:12px;box-shadow:0 12px 28px rgba(0,0,0,0.18);padding:12px;transform:translate(-50%, -50%);z-index:30;border:1px solid #e5e7eb}
 	.tooltip-title{font-weight:700;font-size:16px;margin-bottom:8px}
@@ -601,6 +614,17 @@
 	.line-card{padding:14px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 8px 16px rgba(15,23,36,0.05)}
 	.line-chart{display:flex;flex-direction:column;gap:10px;position:relative}
 	.line-chart svg{width:100%;height:auto}
+	.line-path{
+		stroke-dasharray:1200;
+		stroke-dashoffset:1200;
+		animation:lineDraw 700ms ease forwards;
+	}
+	.line-point{
+		opacity:0;
+		transform-origin:center;
+		animation:pointIn 280ms ease forwards;
+		animation-delay:calc(var(--idx, 0) * 70ms + 200ms);
+	}
 	.line-legend{display:flex;gap:12px;flex-wrap:wrap;font-weight:700;color:#111}
 	.line-legend .legend-dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:middle}
 	.line-tooltip{
@@ -616,6 +640,32 @@
 	}
 	.line-tip-title{font-weight:700;font-size:14px;margin-bottom:6px}
 	.line-tip-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;margin:2px 0}
+
+	@keyframes radarGrow{
+		from{opacity:0;transform:scale(0.2)}
+		to{opacity:1;transform:scale(1)}
+	}
+
+	@keyframes lineDraw{
+		from{stroke-dashoffset:1200}
+		to{stroke-dashoffset:0}
+	}
+
+	@keyframes pointIn{
+		from{opacity:0;transform:scale(0.6)}
+		to{opacity:1;transform:scale(1)}
+	}
+
+	@media (prefers-reduced-motion: reduce){
+		.radar-animate,
+		.line-path,
+		.line-point{
+			animation:none;
+			opacity:1;
+			transform:none;
+			stroke-dashoffset:0;
+		}
+	}
 
 	@media (max-width:1000px){
 		.chart-grid{grid-template-columns:1fr}
