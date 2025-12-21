@@ -4,7 +4,6 @@
 	import { evaluations as evaluationStore, normalizeEval } from '$lib/stores/evaluations';
 	import { activeAthlete } from '$lib/stores/activeAthlete';
 	import {
-		badgeForScore,
 		buildAthleteOptions,
 		dedupeEvaluations,
 		findAthleteOption,
@@ -24,6 +23,12 @@
 		return value || '';
 	};
 
+	const stats = [
+		{ key: 'total', label: 'Gesamt Feedbacks' },
+		{ key: 'excellent', label: 'Sehr gute Bewertungen' },
+		{ key: 'recent', label: 'Diese Woche', sub: 'Letzte Aktivität' }
+	];
+
 	let athletes = data?.athletes || [];
 	let serverEvals = (data?.evaluations || []).map(normalizeEval);
 	let clientEvals = [];
@@ -35,8 +40,9 @@
 	let evalUnsub;
 	let activeUnsub;
 	let searchTerm = '';
-	let badgeFilter = 'alle';
-	let disciplineFilter = 'alle';
+	let filterBadge = 'alle';
+	let filterDiscipline = 'alle';
+	let expandedId = null;
 	let syncedSelection = false;
 
 	onMount(() => {
@@ -73,22 +79,53 @@
 		.filter((ev) => normalizeKey(ev.athlete || ev.name) === normalizeKey(activeOption?.label))
 		.sort((a, b) => ts(b?.createdAt || b?.date) - ts(a?.createdAt || a?.date));
 
-	$: disciplineOptions = Array.from(new Set(myEvals.map((f) => f?.discipline).filter(Boolean)));
-	$: filteredFeedbacks = myEvals.filter((f) => {
-		const term = searchTerm.trim().toLowerCase();
-		const badge = badgeForScore(f.score, f.badge, f.badgeTone).label.toLowerCase();
+	const badgeForScore = (score, fallbackBadge, fallbackTone) => {
+		const s = Number(score) || 0;
+		if (s >= 80) return { label: 'Sehr gut', tone: 'green' };
+		if (s >= 60) return { label: 'Gut', tone: 'blue' };
+		if (s >= 40) return { label: 'Genügend', tone: 'yellow' };
+		if (s >= 0) return { label: 'Ungenügend', tone: 'red' };
+		return { label: fallbackBadge || 'Offen', tone: fallbackTone || 'gray' };
+	};
+
+	const normalize = (v) => (v || '').toString().toLowerCase().trim();
+
+	$: feedbacks = myEvals || [];
+	$: disciplineOptions = Array.from(new Set(feedbacks.map((f) => f?.discipline).filter(Boolean)));
+	$: sortedFeedbacks = feedbacks.slice().sort((a, b) => ts(b?.date || b?.createdAt) - ts(a?.date || a?.createdAt));
+	$: filteredFeedbacks = sortedFeedbacks.filter((f) => {
+		const term = normalize(searchTerm);
+		const badgeLabel = normalize(badgeForScore(f.score, f.badge, f.badgeTone).label);
 		const matchesSearch = term
-			? [f.athlete, f.coach, f.discipline, f.comment, f.text, badge].some((field) =>
-					(field || '').toString().toLowerCase().includes(term)
-				)
+			? [
+				normalize(f.name),
+				normalize(f.athlete),
+				normalize(f.coach),
+				normalize(f.discipline),
+				normalize(f.text),
+				normalize(f.comment),
+				badgeLabel
+			].some((field) => field.includes(term))
 			: true;
-		const matchesBadge = badgeFilter === 'alle' ? true : badge === badgeFilter.toLowerCase();
+		const matchesBadge = filterBadge === 'alle' ? true : badgeLabel === normalize(filterBadge);
 		const matchesDiscipline =
-			disciplineFilter === 'alle'
-				? true
-				: (f.discipline || '').toString().toLowerCase() === disciplineFilter.toLowerCase();
+			filterDiscipline === 'alle' ? true : normalize(f.discipline) === normalize(filterDiscipline);
 		return matchesSearch && matchesBadge && matchesDiscipline;
 	});
+	$: totalCount = feedbacks.length;
+	$: visibleCount = filteredFeedbacks.length;
+	$: excellentCount = filteredFeedbacks.filter(
+		(f) => badgeForScore(f.score, f.badge, f.badgeTone).label === 'Sehr gut'
+	).length;
+	$: lastDateRaw = filteredFeedbacks[0]?.date || filteredFeedbacks[0]?.createdAt || null;
+	$: lastDate = lastDateRaw ? formatDate(lastDateRaw) : '-';
+	$: statValues = { total: visibleCount, excellent: excellentCount, recent: lastDate };
+
+	function resetFilters() {
+		searchTerm = '';
+		filterBadge = 'alle';
+		filterDiscipline = 'alle';
+	}
 </script>
 
 <div class="app-shell">
@@ -96,60 +133,125 @@
 
 	<main class="page container">
 		<header class="page-header">
-			<div>
-				<p class="eyebrow">Feedback</p>
-				<h1>Feedback &amp; Bewertungen</h1>
-				<p class="muted">
-					Alle Rückmeldungen gesammelt an einem Ort – filtere nach Bedarf.
-				</p>
-			</div>
+			<h1>Feedback &amp; Bewertungen</h1>
+			<p class="muted">Übersicht aller erhaltenen Bewertungen</p>
 		</header>
 
-		<section class="filters card">
-			<input
-				type="search"
-				placeholder="Suche nach Disziplin, Coach oder Text"
-				bind:value={searchTerm}
-			/>
-			<select bind:value={badgeFilter} aria-label="Nach Bewertung filtern">
-				<option value="alle">Alle Bewertungen</option>
-				<option value="sehr gut">Sehr gut</option>
-				<option value="gut">Gut</option>
-				<option value="genügend">Genügend</option>
-				<option value="ungenügend">Ungenügend</option>
-			</select>
-			<select bind:value={disciplineFilter} aria-label="Nach Disziplin filtern">
-				<option value="alle">Alle Disziplinen</option>
-				{#each disciplineOptions as disc}
-					<option value={disc}>{disc}</option>
-				{/each}
-			</select>
+		<section class="stat-grid">
+			{#each stats as s}
+				<div class="stat card">
+					<div class="stat-value">{statValues[s.key]}</div>
+					<div class="stat-label">{s.label}</div>
+					{#if s.sub}<div class="stat-sub">{s.sub}</div>{/if}
+				</div>
+			{/each}
+		</section>
+
+		<section class="filter-bar card">
+			<div class="filter-controls">
+				<input
+					type="search"
+					placeholder="Suche nach Coach, Disziplin oder Text"
+					bind:value={searchTerm}
+				/>
+				<select class="filter-select" bind:value={filterBadge} aria-label="Nach Bewertung filtern">
+					<option value="alle">Alle Bewertungen</option>
+					<option value="Sehr gut">Sehr gut</option>
+					<option value="Gut">Gut</option>
+					<option value="Genügend">Genügend</option>
+					<option value="Ungenügend">Ungenügend</option>
+				</select>
+				<select class="filter-select" bind:value={filterDiscipline} aria-label="Nach Disziplin filtern">
+					<option value="alle">Alle Disziplinen</option>
+					{#each disciplineOptions as d}
+						<option value={d}>{d}</option>
+					{/each}
+				</select>
+				<button class="ghost-btn" type="button" on:click={resetFilters}>Filter zurücksetzen</button>
+			</div>
+			<div class="filter-meta">
+				<div class="count-chip">{visibleCount} von {totalCount} Feedbacks</div>
+				{#if visibleCount !== totalCount}
+					<span class="muted small">Filter aktiv</span>
+				{/if}
+			</div>
 		</section>
 
 		<section class="feedback-list">
 			{#if filteredFeedbacks.length === 0}
-				<div class="card empty">
-					<p class="muted">Keine passenden Feedbacks gefunden.</p>
+				<div class="empty card">
+					<h3>Keine Bewertungen gefunden</h3>
+					<p>Keine Treffer für die aktuelle Suche oder Filter.</p>
+					<button class="ghost-btn" type="button" on:click={resetFilters}>Filter zurücksetzen</button>
 				</div>
 			{:else}
-				{#each filteredFeedbacks as fb (fb.id)}
-					<article class="card feedback-card">
-						<div class="card-head">
-							<div>
-								<div class="disc">{fb.discipline || 'Disziplin'}</div>
-								<div class="meta">
-									{formatDate(fb.date || fb.createdAt)} · {fb.coach || 'Coach'}
+				{#each filteredFeedbacks as f}
+					<article class="feedback card">
+						<button
+							class="feedback-head"
+							type="button"
+							on:click={() => (expandedId = expandedId === f.id ? null : f.id)}
+							aria-expanded={expandedId === f.id}
+						>
+							<div class="feedback-main">
+								<div class="avatar">
+									<svg
+										viewBox="0 0 24 24"
+										width="18"
+										height="18"
+										fill="none"
+										stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+									>
+										<circle cx="12" cy="9" r="3.2"></circle>
+										<path d="M6.5 18.5a5.5 5.5 0 0 1 11 0"></path>
+										<path d="M6.5 18.5h11"></path>
+									</svg>
+								</div>
+								<div class="feedback-body">
+									<div class="feedback-title">{f.athlete || activeOption?.label || 'Athlet'} - {f.discipline || 'Disziplin'}</div>
+									<div class="meta">{f.coach || 'Coach'} - {formatDate(f.date || f.createdAt)}</div>
+									<div class="feedback-text">{f.text || f.comment || ''}</div>
 								</div>
 							</div>
-							<div class="score-block">
-								<div class="score">{fb.score ?? '-'}</div>
-								<div class={`badge ${badgeForScore(fb.score, fb.badge, fb.badgeTone).tone}`}>
-									{badgeForScore(fb.score, fb.badge, fb.badgeTone).label}
+							<div class="feedback-meta">
+								{#if badgeForScore(f.score, f.badge, f.badgeTone)}
+									<span class={`badge ${badgeForScore(f.score, f.badge, f.badgeTone).tone}`}>
+										{badgeForScore(f.score, f.badge, f.badgeTone).label}
+									</span>
+								{/if}
+								<div class="score">{f.score ?? '-'}</div>
+								<div class={`chevron ${expandedId === f.id ? 'open' : ''}`}>&#709;</div>
+							</div>
+						</button>
+
+						{#if expandedId === f.id}
+							<div class="feedback-detail">
+								<div class="detail-title">Detailbewertung</div>
+								{#if Array.isArray(f.details) && f.details.length}
+									<div class="pill-row">
+										{#each f.details as d}
+											<div class="pill-score">
+												<div class="pill-round">{d.value}</div>
+												<div class="pill-label">{d.label}</div>
+											</div>
+										{/each}
+									</div>
+								{:else}
+									<p class="muted">Keine Detailbewertung vorhanden.</p>
+								{/if}
+								{#if f.comment || f.text}
+									<div class="comment-box">
+										<div class="comment-label">Kommentar</div>
+										<div class="comment-text">{f.comment || f.text}</div>
+									</div>
+								{/if}
+								<div class="footer-meta">
+									<div class="footer-left">
+										Bewertet von: {f.coach || 'Coach'}
+										<span class="date">{formatDate(f.date || f.createdAt)}</span>
+									</div>
 								</div>
 							</div>
-						</div>
-						{#if fb.comment || fb.text}
-							<p class="comment">"{fb.comment || fb.text}"</p>
 						{/if}
 					</article>
 				{/each}
@@ -159,36 +261,88 @@
 </div>
 
 <style>
-	.container{max-width:1200px;margin:24px auto;padding:0 20px}
-	.page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap}
-	.page-header h1{margin:4px 0;font-weight:800;font-size:28px}
-	.muted{color:#6b7280;margin-top:6px}
-	.eyebrow{letter-spacing:.08em;text-transform:uppercase;font-size:12px;color:#9ca3af;margin:0}
+	:global(body){background:#f7f8fb;}
+	.page.container{max-width:1200px;margin:24px auto;padding:0 20px}
+	.page-header h1{margin:0;font-size:26px;font-weight:700}
+	.page-header .muted{margin:6px 0 0;color:#6b7280;font-size:14px}
 
-	.card{background:#fff;border:1px solid #e8ebf0;border-radius:12px;padding:16px;box-shadow:0 8px 18px rgba(15,23,36,0.04)}
-	.filters{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin:18px 0}
-	.filters input, .filters select{padding:10px 12px;border-radius:10px;border:1px solid #e5e7eb;background:#fff;width:100%}
+	.card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 8px 16px rgba(15,23,36,0.05)}
 
-	.feedback-list{display:flex;flex-direction:column;gap:12px}
-	.feedback-card .card-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
-	.disc{font-weight:800;font-size:17px}
-	.meta{color:#6b7280;font-size:12px;margin-top:2px}
-	.score-block{text-align:right}
-	.score{font-weight:800;font-size:24px}
-	.badge{padding:4px 10px;border-radius:8px;font-weight:700;font-size:12px;display:inline-block;margin-top:4px}
-	.badge.green{background:#e7f6ec;color:#187246}
-	.badge.blue{background:#e7f1fb;color:#1d4ed8}
-	.badge.yellow{background:#fef3c7;color:#92400e}
-	.badge.red{background:#fde2e1;color:#b42318}
-	.badge.gray{background:#f3f4f6;color:#4b5563}
-	.comment{margin:12px 0 4px;font-weight:600}
-	.empty{background:#f8fafc;border-style:dashed;text-align:center}
+	.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+	.stat{padding:14px}
+	.stat-value{font-size:22px;font-weight:700;color:#0f1724}
+	.stat-label{margin-top:4px;color:#6b7280;font-size:13px}
+	.stat-sub{color:#9ca3af;font-size:12px;margin-top:2px}
+
+	.filter-bar{margin-top:14px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+	.filter-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+	.filter-controls input,.filter-controls select{padding:10px 12px;border-radius:10px;border:1px solid #e5e7eb;font-size:14px;min-width:200px}
+	.filter-controls input{flex:1;min-width:260px}
+	.filter-controls select{min-width:170px}
+	.filter-select{
+		padding:12px 14px;
+		border-radius:10px;
+		border:1px solid #e5e7eb;
+		background:#fff;
+		font-size:16px;
+		color:#111;
+		box-shadow:0 4px 10px rgba(0,0,0,0.04);
+		appearance:none;
+		background-image: linear-gradient(45deg, transparent 50%, #9ca3af 50%),
+			linear-gradient(135deg, #9ca3af 50%, transparent 50%);
+		background-position: calc(100% - 20px) calc(50% - 3px), calc(100% - 15px) calc(50% - 3px);
+		background-size: 8px 8px, 8px 8px;
+		background-repeat: no-repeat;
+	}
+	.ghost-btn{border:1px solid #e5e7eb;color:#111;background:#fff;padding:9px 12px;border-radius:10px;font-weight:700;cursor:pointer;transition:all .15s ease}
+	.ghost-btn:hover{background:#f3f4f6}
+	.filter-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+	.count-chip{background:#eef1f5;padding:6px 10px;border-radius:999px;color:#111;font-weight:700;font-size:13px;border:1px solid #e2e6ec}
+	.small{font-size:13px}
+
+	.feedback-list{margin-top:16px;display:flex;flex-direction:column;gap:14px}
+	.feedback{padding:14px 16px;display:flex;flex-direction:column;gap:14px}
+	.feedback-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;background:transparent;border:0;width:100%;text-align:left;padding:0;cursor:pointer}
+	.feedback-main{display:flex;gap:12px;align-items:flex-start}
+	.avatar{width:40px;height:40px;border-radius:50%;background:#e11d2f;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+	.feedback-body{display:flex;flex-direction:column;gap:4px}
+	.feedback-title{font-weight:700;font-size:15px;color:#111}
+	.meta{color:#6b7280;font-size:13px}
+	.feedback-text{color:#1f2937;font-size:14px;max-width:960px}
+
+	.feedback-meta{display:flex;align-items:center;gap:12px}
+	.badge{padding:6px 10px;border-radius:10px;font-weight:700;font-size:12px;border:1px solid transparent}
+	.badge.green{background:#ecfdf3;color:#065f46;border-color:#bbf7d0}
+	.badge.blue{background:#eef2ff;color:#4338ca;border-color:#c7d2fe}
+	.badge.red{background:#fef2f2;color:#b91c1c;border-color:#fecdd3}
+	.badge.yellow{background:#fefce8;color:#854d0e;border-color:#fef08a}
+	.badge.gray{background:#f3f4f6;color:#374151;border-color:#e5e7eb}
+	.score{font-weight:700;color:#111;font-size:16px}
+	.chevron{color:#6b7280;font-size:16px;transform:rotate(0deg);transition:transform .15s ease}
+	.chevron.open{transform:rotate(180deg)}
+
+	.feedback-detail{border-top:1px solid #eef1f5;padding:12px 0 6px;display:flex;flex-direction:column;gap:14px}
+	.detail-title{font-weight:700;font-size:14px}
+	.pill-row{display:flex;gap:28px;flex-wrap:wrap;justify-content:flex-start;align-items:flex-start;padding:6px 0}
+	.pill-score{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-width:100px;gap:8px}
+	.pill-round{width:82px;height:82px;border-radius:50%;background:#e11d2f;color:#fff;font-weight:800;font-size:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 24px rgba(225,29,47,0.18)}
+	.pill-label{margin:0;font-weight:700;color:#111;font-size:14px;text-align:center}
+
+	.comment-box{border:1px solid #eef1f5;background:#f7f8fb;border-radius:14px;padding:14px 16px;max-width:100%;margin:6px 0}
+	.comment-label{color:#6b7280;font-size:13px;margin-bottom:6px;display:flex;align-items:center;gap:6px;font-weight:700}
+	.comment-text{color:#1f2937;font-size:15px;font-weight:600}
+	.footer-meta{display:flex;justify-content:space-between;align-items:center;color:#6b7280;font-size:13px;padding:4px 0 0;gap:10px;flex-wrap:wrap}
+	.footer-meta .date{color:#111}
+	.footer-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+	.empty{text-align:center;padding:26px}
+	.empty p{margin:6px 0 12px;color:#6b7280;font-size:14px}
 
 	@media (max-width:900px){
-		.filters{grid-template-columns:1fr}
-	}
-	@media (max-width:700px){
-		.container{padding:0 12px}
-		.page-header h1{font-size:22px}
+		.stat-grid{grid-template-columns:1fr}
+		.feedback-head{flex-direction:column;align-items:flex-start}
+		.feedback-meta{width:100%;justify-content:flex-start}
+		.filter-controls{width:100%}
+		.filter-controls input,.filter-controls select{width:100%;min-width:0}
+		.filter-bar{align-items:flex-start}
 	}
 </style>

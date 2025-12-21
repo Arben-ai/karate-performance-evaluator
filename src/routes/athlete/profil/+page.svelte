@@ -84,7 +84,6 @@
 		.filter((ev) => normalizeKey(ev.athlete || ev.name) === normalizeKey(activeOption?.label))
 		.sort((a, b) => ts(b?.createdAt || b?.date) - ts(a?.createdAt || a?.date));
 
-	$: totalEvals = myEvals.length;
 	$: avgScore = (() => {
 		const scores = myEvals.map((ev) => Number(ev?.score)).filter((v) => Number.isFinite(v));
 		if (!scores.length) return '-';
@@ -92,11 +91,6 @@
 		return Math.round(sum / scores.length);
 	})();
 	$: lastEval = myEvals[0] || null;
-	$: bestScore = (() => {
-		const scores = myEvals.map((ev) => Number(ev?.score)).filter((v) => Number.isFinite(v));
-		return scores.length ? Math.max(...scores) : '-';
-	})();
-	$: sessionCount = Array.from(new Set(myEvals.map((ev) => formatDate(ev?.date || ev?.createdAt)).filter(Boolean))).length;
 	$: firstDate = (() => {
 		if (!myEvals.length) return null;
 		const sorted = myEvals.slice().sort((a, b) => ts(a?.createdAt || a?.date) - ts(b?.createdAt || b?.date));
@@ -151,7 +145,6 @@
 	$: rank = activeOption?.rank || '-';
 	$: age = activeOption?.age ?? '-';
 	$: gender = activeOption?.gender || '-';
-	$: achievementCount = Object.keys(badgeCounts || {}).length;
 </script>
 
 <div class="app-shell">
@@ -178,7 +171,6 @@
 				</div>
 				<div class="profile-name">{displayName}</div>
 				<div class="badge">Athlet</div>
-				<div class="profile-role">{discipline}</div>
 				<button class="logout" type="button" on:click={() => goto('/')}>{'<-'} Abmelden</button>
 			</div>
 
@@ -244,35 +236,6 @@
 			</div>
 		</section>
 
-		<section class="card section">
-			<h3>Statistiken</h3>
-			<div class="stat-grid">
-				<div class="stat">
-					<div class="stat-value">{totalEvals}</div>
-					<div class="stat-sub">Bewertungen</div>
-				</div>
-				<div class="stat">
-					<div class="stat-value">{avgScore}</div>
-					<div class="stat-sub">Durchschnitt</div>
-				</div>
-				<div class="stat">
-					<div class="stat-value">{bestScore}</div>
-					<div class="stat-sub">Beste Bewertung</div>
-				</div>
-				<div class="stat">
-					<div class="stat-value">{sessionCount}</div>
-					<div class="stat-sub">Trainingseinheiten</div>
-				</div>
-				<div class="stat">
-					<div class="stat-value">{achievementCount}</div>
-					<div class="stat-sub">Achievements</div>
-				</div>
-				<div class="stat">
-					<div class="stat-value">{lastEval ? formatDate(lastEval.date || lastEval.createdAt) : '-'}</div>
-					<div class="stat-sub">Letzte Bewertung</div>
-				</div>
-			</div>
-		</section>
 	</main>
 </div>
 
@@ -281,12 +244,12 @@
 	.page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap}
 	.page-header h1{margin:4px 0;font-weight:800;font-size:28px}
 	.muted{color:#6b7280;margin-top:6px}
-	.logout{padding:10px 14px;border-radius:10px;border:1px solid #e11d2f;color:#e11d2f;background:#fff;font-weight:700;cursor:pointer;align-self:flex-start}
+	.logout{padding:10px 14px;border-radius:10px;border:1px solid #e11d2f;color:#e11d2f;background:#fff;font-weight:700;cursor:pointer;margin-top:6px}
 	.logout:hover{background:#fdf2f3}
 
 	.grid-two{display:grid;grid-template-columns:1.1fr 2fr;gap:16px;margin:18px 0}
 	.card{background:#fff;border:1px solid #e8ebf0;border-radius:12px;padding:18px;box-shadow:0 8px 18px rgba(15,23,36,0.04)}
-	.profile-card{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+	.profile-card{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
 	.avatar-wrap{width:90px;height:90px;border-radius:999px;background:linear-gradient(145deg,#e11d2f,#f87171);display:flex;align-items:center;justify-content:center;box-shadow:0 14px 28px rgba(225,29,47,0.25)}
 	.avatar{width:70px;height:70px;border-radius:999px;background:#111;display:flex;align-items:center;justify-content:center}
 	.profile-name{font-weight:800;font-size:20px;margin-top:8px}
@@ -303,11 +266,6 @@
 
 	.section{margin-top:14px}
 	.section h3{margin:0 0 12px;font-size:17px}
-
-	.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-	.stat{padding:12px;border-radius:12px;border:1px solid #eef1f5;background:#f8fafc;text-align:center}
-	.stat-value{font-weight:800;font-size:24px}
-	.stat-sub{color:#6b7280;font-size:13px;margin-top:4px}
 
 	@media (max-width:1000px){
 		.grid-two{grid-template-columns:1fr}

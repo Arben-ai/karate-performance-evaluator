@@ -463,7 +463,7 @@ async function submitAthlete(payload, setError, setSending) {
 							<div class="top">
 								<div>
 									<Badge tone="blue" label={ath.discipline || '-'} />
-									<h3>{ath.athlete || ath.name || 'Unbekannt'}</h3>
+									<h3 class="athlete-name">{ath.athlete || ath.name || 'Unbekannt'}</h3>
 									{#if ath.coach}<p class="muted">Hauptcoach: {ath.coach}</p>{/if}
 									{#if ath.gender || ath.age || ath.rank}
 										<ul class="meta-list">
@@ -661,6 +661,19 @@ async function submitAthlete(payload, setError, setSending) {
 	.count-pill{background:#eef1f5;padding:6px 12px;border-radius:999px;color:#111;font-weight:600;font-size:13px;border:1px solid #e2e6ec}
 	.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
 	.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+	.top > div:first-child{flex:1;min-width:0}
+	.top-right{flex-shrink:0;align-items:flex-start}
+	.athlete-name{
+		margin:8px 0 6px;
+		display:-webkit-box;
+		-webkit-box-orient:vertical;
+		-webkit-line-clamp:2;
+		overflow:hidden;
+		line-height:1.2;
+		min-height:2.4em;
+	}
+	.muted{margin:0 0 6px}
+	.meta-list{margin:6px 0 0;padding-left:18px;font-size:13px;color:#4b5563}
 	.pill{display:inline-block;background:#eef1f5;padding:4px 10px;border-radius:999px;font-size:12px;color:#111;border:1px solid #e2e6ec;margin-bottom:6px}
 	.score{font-size:28px;font-weight:800;color:#0f1724}
 	.card-actions{margin-top:10px;display:flex;justify-content:flex-end}

@@ -310,7 +310,7 @@
 
   const formatMonth = (d) => {
     try {
-      return new Date(d).toLocaleDateString('de-CH', { month: 'short' });
+      return new Date(d).toLocaleDateString('de-CH', { month: 'short', year: '2-digit' });
     } catch {
       return d || '';
     }
@@ -402,8 +402,12 @@
   const emptyLineTip = { visible: false, x: 0, y: 0, label: '', rows: [] };
   let lineTip1 = { ...emptyLineTip };
   let lineTip2 = { ...emptyLineTip };
+  let lineWrap1El;
+  let lineWrap2El;
+  let lineSvg1El;
+  let lineSvg2El;
 
-  function showLineTip(chart, idx, dims) {
+  function showLineTip(chart, idx, dims, svgEl, wrapEl) {
     const tl = chart === 1 ? timeline1 : timeline2;
     if (!tl) return;
     const label = tl.labels?.[idx];
@@ -415,10 +419,22 @@
       })) || [];
     const numericVals = rows.map((r) => (typeof r.value === 'number' ? r.value : null)).filter((v) => v != null);
     const yVal = numericVals.length ? Math.min(...numericVals) : 50;
+    let x = dims.xPos(idx);
+    let y = dims.yPos(yVal) - 14;
+    if (svgEl && wrapEl) {
+      const svgRect = svgEl.getBoundingClientRect();
+      const wrapRect = wrapEl.getBoundingClientRect();
+      const scale = svgRect.width / dims.width;
+      x = svgRect.left - wrapRect.left + x * scale;
+      y = svgRect.top - wrapRect.top + y * scale;
+      const margin = 16;
+      x = Math.max(margin, Math.min(wrapRect.width - margin, x));
+      y = Math.max(margin, Math.min(wrapRect.height - margin, y));
+    }
     const state = {
       visible: true,
-      x: dims.xPos(idx),
-      y: dims.yPos(yVal) - 14,
+      x,
+      y,
       label: formatMonth(label),
       rows
     };
@@ -755,8 +771,8 @@
       <div class="card line-card">
         <div class="chart-header">Entwicklung über Zeit {stats1.name || ''}</div>
           {#if timeline1}
-            <div class="line-chart">
-            <svg viewBox={`0 0 ${dims1.width} ${dims1.height}`} preserveAspectRatio="xMidYMid meet" on:mouseleave={() => hideLineTip(1)}>
+            <div class="line-chart" bind:this={lineWrap1El}>
+            <svg bind:this={lineSvg1El} viewBox={`0 0 ${dims1.width} ${dims1.height}`} preserveAspectRatio="xMidYMid meet" on:mouseleave={() => hideLineTip(1)}>
               <g class="line-grid">
                 {#each [0,25,50,75,100] as tick}
                   <line
@@ -798,7 +814,7 @@
                       width="24"
                       height="24"
                       fill="transparent"
-                      on:mouseenter={() => showLineTip(1, idx, dims1)}
+                      on:mouseenter={() => showLineTip(1, idx, dims1, lineSvg1El, lineWrap1El)}
                       on:mouseleave={() => hideLineTip(1)}
                     />
                   {/if}
@@ -812,7 +828,7 @@
                   width={Math.max(36, (dims1.innerW / Math.max(6, timeline1.labels.length)) )}
                   height={dims1.height}
                   fill="transparent"
-                  on:mouseenter={() => showLineTip(1, idx, dims1)}
+                  on:mouseenter={() => showLineTip(1, idx, dims1, lineSvg1El, lineWrap1El)}
                 />
               {/each}
 
@@ -866,8 +882,8 @@
         <div class="card line-card">
           <div class="chart-header">Entwicklung über Zeit {stats2.name || ''}</div>
             {#if timeline2}
-              <div class="line-chart">
-              <svg viewBox={`0 0 ${dims2.width} ${dims2.height}`} preserveAspectRatio="xMidYMid meet" on:mouseleave={() => hideLineTip(2)}>
+              <div class="line-chart" bind:this={lineWrap2El}>
+              <svg bind:this={lineSvg2El} viewBox={`0 0 ${dims2.width} ${dims2.height}`} preserveAspectRatio="xMidYMid meet" on:mouseleave={() => hideLineTip(2)}>
                 <g class="line-grid">
                   {#each [0,25,50,75,100] as tick}
                     <line
@@ -909,12 +925,12 @@
                         width="24"
                         height="24"
                         fill="transparent"
-                        on:mouseenter={() => showLineTip(2, idx, dims2)}
-                        on:mouseleave={() => hideLineTip(2)}
-                      />
-                    {/if}
-                  {/each}
+                      on:mouseenter={() => showLineTip(2, idx, dims2, lineSvg2El, lineWrap2El)}
+                      on:mouseleave={() => hideLineTip(2)}
+                    />
+                  {/if}
                 {/each}
+              {/each}
 
                 {#each timeline2.labels as d, idx}
                   <rect
@@ -923,9 +939,9 @@
                     width={Math.max(36, (dims2.innerW / Math.max(6, timeline2.labels.length)) )}
                     height={dims2.height}
                     fill="transparent"
-                    on:mouseenter={() => showLineTip(2, idx, dims2)}
-                  />
-                {/each}
+                  on:mouseenter={() => showLineTip(2, idx, dims2, lineSvg2El, lineWrap2El)}
+                />
+              {/each}
 
                 {#each timeline2.labels as d, idx}
                   <line

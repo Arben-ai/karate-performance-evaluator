@@ -161,13 +161,6 @@
 				<div class="stat-sub">{lastDiscipline}</div>
 			</div>
 			<div class="card stat">
-				<div class="stat-label">Letzte Einheit</div>
-				<div class="stat-value">{lastEval?.score ?? '-'}</div>
-				<div class="stat-sub">
-					{lastEval ? `${formatDate(lastEval.date || lastEval.createdAt)} · ${lastDiscipline}` : 'Noch keine Einträge'}
-				</div>
-			</div>
-			<div class="card stat">
 				<div class="stat-label">Coach</div>
 				<div class="stat-value">{lastCoach}</div>
 				<div class="stat-sub">{activeOption?.discipline || 'Disziplin offen'}</div>
@@ -207,36 +200,6 @@
 				{/if}
 			</div>
 
-			<div class="card focus">
-				<div class="card-head">
-					<h3>Disziplin-Fokus</h3>
-					<span class="pill subtle">{disciplineStats.length} Bereiche</span>
-				</div>
-				{#if disciplineStats.length === 0}
-					<p class="muted">Sobald Bewertungen vorliegen, siehst du hier deine Schwerpunkte.</p>
-				{:else}
-					{#each disciplineStats.slice(0, 4) as disc (disc.name)}
-						<div class="disc-row">
-							<div class="disc-head">
-								<div>
-									<div class="disc-name">{disc.name}</div>
-									<div class="disc-meta">{disc.count || 0} Bewertungen</div>
-								</div>
-								<div class="disc-score">{disc.avg} / 100</div>
-							</div>
-							<div class="progress">
-								<span style={`width:${Math.max(6, Math.min(100, disc.avg || 0))}%`}></span>
-							</div>
-							<div class="disc-meta">
-								Letzter Score {disc.lastScore ?? '-'} · {formatDate(disc.lastDate)}
-							</div>
-						</div>
-					{/each}
-				{/if}
-			</div>
-		</section>
-
-		<section class="grid-two">
 			<div class="card goals">
 				<div class="card-head">
 					<h3>Nächste Schritte</h3>
@@ -253,40 +216,6 @@
 				{/if}
 			</div>
 
-			<div class="card profile">
-				<div class="card-head">
-					<h3>Profil &amp; Coach</h3>
-					<span class="pill subtle">Überblick</span>
-				</div>
-				<div class="profile-grid">
-					<div>
-						<div class="label">Disziplin</div>
-						<div class="value">{activeOption?.discipline || 'Noch nicht hinterlegt'}</div>
-					</div>
-					<div>
-						<div class="label">Kyu / Dan</div>
-						<div class="value">{activeOption?.rank || '-'}</div>
-					</div>
-					<div>
-						<div class="label">Coach</div>
-						<div class="value">{lastCoach}</div>
-					</div>
-					<div>
-						<div class="label">Letzte Aktivität</div>
-						<div class="value">
-							{lastEval ? formatDate(lastEval.date || lastEval.createdAt) : 'Noch keine Daten'}
-						</div>
-					</div>
-				</div>
-				{#if lastEval?.comment}
-					<div class="coach-note">
-						<div class="label">Feedback</div>
-						<p>{lastEval.comment}</p>
-					</div>
-				{:else}
-					<p class="muted">Sobald Feedback erfasst wird, erscheint es hier.</p>
-				{/if}
-			</div>
 		</section>
 	</main>
 </div>
@@ -298,7 +227,7 @@
 	.muted{color:#6b7280;margin-top:6px}
 	.eyebrow{letter-spacing:.08em;text-transform:uppercase;font-size:12px;color:#9ca3af;margin:0}
 
-	.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:18px 0 24px}
+	.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:18px 0 24px}
 	.card{background:#fff;border:1px solid #e8ebf0;border-radius:12px;padding:16px;box-shadow:0 8px 18px rgba(15,23,36,0.04)}
 	.stat .stat-label{color:#6b7280;font-size:13px}
 	.stat .stat-value{font-size:26px;font-weight:800;margin:6px 0}
@@ -324,23 +253,11 @@
 	.score-badge.red{background:#fde2e1;color:#b42318}
 	.score-badge.gray{background:#f3f4f6;color:#4b5563}
 
-	.focus .disc-row{padding:10px 0;border-bottom:1px solid #eef1f5}
-	.focus .disc-row:last-child{border-bottom:0}
-	.disc-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
-	.disc-name{font-weight:700}
-	.disc-meta{color:#6b7280;font-size:12px;margin-top:2px}
-	.disc-score{font-weight:800}
-	.progress{background:#f3f4f6;border-radius:999px;height:8px;overflow:hidden;margin:8px 0}
-	.progress span{display:block;height:100%;background:#e11d2f;border-radius:999px}
 
 	.goals ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
 	.goals li{display:flex;gap:10px;align-items:flex-start}
 	.step-index{width:26px;height:26px;border-radius:8px;background:#0f1724;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;margin-top:2px}
 
-	.profile-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-	.label{color:#6b7280;font-size:12px;margin-bottom:4px}
-	.value{font-weight:700}
-	.coach-note{margin-top:12px;padding:12px;border-radius:10px;background:#f8fafc;border:1px solid #e8ebf0}
 
 	@media (max-width:1000px){
 		.stat-grid{grid-template-columns:repeat(2,1fr)}
@@ -350,6 +267,5 @@
 		.container{padding:0 12px}
 		.stat-grid{grid-template-columns:1fr}
 		.page-header h1{font-size:22px}
-		.profile-grid{grid-template-columns:1fr}
 	}
 </style>
