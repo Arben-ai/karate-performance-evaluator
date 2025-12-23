@@ -458,7 +458,7 @@
     </header>
 
     <section class={`filters bare ${compareMode ? 'compare' : 'single'}`}>
-      <div class="field-box">
+      <div class="field-box fly-in-left">
         <div class="field">
           <label for="athlete1">1. Athlet auswählen</label>
           <div class="select-wrap">
@@ -492,7 +492,7 @@
       </div>
 
       {#if compareMode}
-        <div class="field-box">
+        <div class="field-box fly-in-right">
           <div class="field">
             <label for="athlete2">2. Athlet auswählen</label>
             <div class="select-wrap">
@@ -525,7 +525,7 @@
           </div>
         </div>
       {/if}
-      <div class="field-box compare-toggle">
+      <div class="field-box compare-toggle fly-in-up">
         <label class="toggle">
           <input type="checkbox" bind:checked={compareMode} />
           <span class="toggle-ui"></span>
@@ -538,7 +538,7 @@
 
 
     <section class={`chart-grid ${compareMode ? 'grid-compare' : 'grid-single'}`}>
-      <div class="card chart">
+      <div class="card chart fly-in-card" style="--delay: 0">
         <div class="chart-header with-score">
           <span>Kompetenzprofil {stats1.name || '-'}</span>
           <span class="score-tag">{stats1.current !== '-' ? `${stats1.current} Punkte` : '-'}</span>
@@ -657,7 +657,7 @@
       </div>
 
       {#if compareMode}
-        <div class="card chart">
+        <div class="card chart fly-in-card" style="--delay: 1">
           <div class="chart-header with-score">
             <span>Kompetenzprofil {stats2.name || '-'}</span>
             <span class="score-tag">{stats2.current !== '-' ? `${stats2.current} Punkte` : '-'}</span>
@@ -776,7 +776,7 @@
     </section>
 
     <section class={`line-charts ${compareMode ? 'grid-compare' : 'grid-single'}`}>
-      <div class="card line-card">
+      <div class="card line-card fly-in-line" style="--delay: 0">
         <div class="chart-header">Entwicklung über Zeit {stats1.name || ''}</div>
           {#if timeline1}
             {#key selected1}
@@ -892,7 +892,7 @@
         </div>
 
       {#if compareMode}
-        <div class="card line-card">
+        <div class="card line-card fly-in-line" style="--delay: 1">
           <div class="chart-header">Entwicklung über Zeit {stats2.name || ''}</div>
             {#if timeline2}
               {#key selected2}
@@ -1020,6 +1020,24 @@
   .filters.single{grid-template-columns:1fr}
   .filters.compare{grid-template-columns:1fr 1fr}
   .field-box{padding:12px;border:1px solid #eef1f5;border-radius:10px;background:#fff;overflow:visible}
+  .field-box.fly-in-left{
+    opacity:0;
+    transform:translateX(-22px);
+    animation:filterFlyInLeft 560ms ease forwards;
+    animation-delay:120ms;
+  }
+  .field-box.fly-in-right{
+    opacity:0;
+    transform:translateX(22px);
+    animation:filterFlyInRight 560ms ease forwards;
+    animation-delay:160ms;
+  }
+  .field-box.fly-in-up{
+    opacity:0;
+    transform:translateY(16px);
+    animation:filterFlyInUp 520ms ease forwards;
+    animation-delay:200ms;
+  }
   .field label{display:block;font-weight:700;font-size:14px;margin-bottom:6px;color:#111}
   .field input{
     width:100%;
@@ -1084,6 +1102,12 @@
   .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
   .chart-grid.grid-single{grid-template-columns:1fr}
   .chart{padding:14px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 8px 16px rgba(15,23,36,0.05)}
+  .chart.fly-in-card{
+    opacity:0;
+    transform:translateY(18px);
+    animation:chartFlyIn 560ms ease forwards;
+    animation-delay:calc(var(--delay, 0) * 120ms + 180ms);
+  }
   .chart-header{font-weight:700;margin-bottom:10px}
   .chart-header.with-score{display:flex;justify-content:space-between;align-items:center;gap:12px}
   .score-tag{font-size:14px;font-weight:700;color:#0f1724;background:#f4f5f9;border:1px solid #e5e7eb;border-radius:999px;padding:6px 10px;min-width:72px;text-align:right}
@@ -1116,6 +1140,12 @@
   .line-charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
   .line-charts.grid-single{grid-template-columns:1fr}
   .line-card{padding:14px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 8px 16px rgba(15,23,36,0.05)}
+  .line-card.fly-in-line{
+    opacity:0;
+    transform:translateY(18px);
+    animation:lineCardFlyIn 560ms ease forwards;
+    animation-delay:calc(var(--delay, 0) * 120ms + 220ms);
+  }
   .line-chart{display:flex;flex-direction:column;gap:10px;position:relative}
   .line-chart svg{width:100%;height:auto}
   .line-path{
@@ -1170,10 +1200,40 @@
     to{opacity:1;transform:scale(1)}
   }
 
+  @keyframes filterFlyInLeft{
+    from{opacity:0;transform:translateX(-22px)}
+    to{opacity:1;transform:translateX(0)}
+  }
+
+  @keyframes filterFlyInRight{
+    from{opacity:0;transform:translateX(22px)}
+    to{opacity:1;transform:translateX(0)}
+  }
+
+  @keyframes filterFlyInUp{
+    from{opacity:0;transform:translateY(16px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  @keyframes chartFlyIn{
+    from{opacity:0;transform:translateY(18px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  @keyframes lineCardFlyIn{
+    from{opacity:0;transform:translateY(18px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
   @media (prefers-reduced-motion: reduce){
     .radar-animate,
     .line-path,
-    .line-point{
+    .line-point,
+    .field-box.fly-in-left,
+    .field-box.fly-in-right,
+    .field-box.fly-in-up,
+    .chart.fly-in-card,
+    .line-card.fly-in-line{
       animation:none;
       opacity:1;
       transform:none;

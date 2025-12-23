@@ -159,7 +159,7 @@
 		</header>
 
 		<section class="grid-two">
-			<div class="card profile-card">
+			<div class="card profile-card reveal-card" style="--delay:0">
 				<div class="avatar-wrap">
 					<div class="avatar">
 						<svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -174,7 +174,7 @@
 				<button class="logout" type="button" on:click={() => goto('/')}>{'<-'} Abmelden</button>
 			</div>
 
-			<div class="card contact-card reveal-card" style="--delay:0">
+			<div class="card contact-card reveal-card" style="--delay:1">
 				<h3>Kontaktinformationen</h3>
 				<div class="info-grid">
 					<div class="info-row">
@@ -202,7 +202,7 @@
 			</div>
 		</section>
 
-		<section class="card section reveal-card" style="--delay:1">
+		<section class="card section reveal-card" style="--delay:2">
 			<h3>Profilinformationen</h3>
 			<div class="info-grid two-cols">
 				<div class="info-row">

@@ -295,6 +295,13 @@
 		box-shadow: 0 10px 20px rgba(17, 24, 39, 0.05);
 	}
 
+	.panel.actions {
+		opacity: 0;
+		transform: translateX(-22px);
+		animation: actionsFlyIn 560ms ease forwards;
+		animation-delay: 120ms;
+	}
+
 	.panel-head {
 		display: flex;
 		align-items: center;
@@ -466,6 +473,11 @@
 		to { opacity: 1; transform: translateY(0); }
 	}
 
+	@keyframes actionsFlyIn {
+		from { opacity: 0; transform: translateX(-22px); }
+		to { opacity: 1; transform: translateX(0); }
+	}
+
 	@keyframes scorePulse {
 		0% { transform: scale(1); box-shadow: 0 0 0 rgba(225, 29, 47, 0); }
 		50% { transform: scale(1.06); box-shadow: 0 8px 18px rgba(225, 29, 47, 0.18); }
@@ -588,6 +600,7 @@
 
 	@media (prefers-reduced-motion: reduce) {
 		.reveal-item,
+		.panel.actions,
 		.pill-score.pulse,
 		.athlete-card.reveal-card {
 			animation: none;

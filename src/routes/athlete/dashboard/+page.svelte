@@ -274,17 +274,17 @@
 		</header>
 
 		<section class="stat-grid">
-			<div class="card stat">
+			<div class="card stat fly-in-stat" style="--delay:0">
 				<div class="stat-label">Kategorie-Schnitt</div>
 				<div class="stat-value">{categoryAvgScore}</div>
 				<div class="stat-sub">Ø aller {categoryLabel}-Bewertungen {currentYear} · {categoryEvalCount} Einträge</div>
 			</div>
-			<div class="card stat">
+			<div class="card stat fly-in-stat" style="--delay:1">
 				<div class="stat-label">Aktuelle Bewertung</div>
 				<div class="stat-value">{currentScore}</div>
 				<div class="stat-sub">{lastDiscipline}</div>
 			</div>
-			<div class="card stat">
+			<div class="card stat fly-in-stat" style="--delay:2">
 				<div class="stat-label">Hauptcoach</div>
 				<div class="stat-value">{lastCoach}</div>
 				<div class="stat-sub">{activeOption?.discipline || 'Disziplin offen'}</div>
@@ -361,6 +361,12 @@
 
 	.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:18px 0 24px}
 	.card{background:#fff;border:1px solid #e8ebf0;border-radius:12px;padding:16px;box-shadow:0 8px 18px rgba(15,23,36,0.04)}
+	.fly-in-stat{
+		opacity:0;
+		transform:translateY(18px);
+		animation:statFlyIn 520ms ease forwards;
+		animation-delay:calc(var(--delay, 0) * 100ms + 140ms);
+	}
 	.stat .stat-label{color:#6b7280;font-size:13px}
 	.stat .stat-value{font-size:26px;font-weight:800;margin:6px 0}
 	.stat .stat-sub{color:#6b7280;font-size:13px}
@@ -421,8 +427,14 @@
 		to{opacity:1;transform:translateY(0)}
 	}
 
+	@keyframes statFlyIn{
+		from{opacity:0;transform:translateY(18px)}
+		to{opacity:1;transform:translateY(0)}
+	}
+
 	@media (prefers-reduced-motion: reduce){
-		.reveal-item{animation:none;opacity:1;transform:none}
+		.reveal-item,
+		.fly-in-stat{animation:none;opacity:1;transform:none}
 	}
 
 

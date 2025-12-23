@@ -240,7 +240,7 @@
 
     <div class="content-grid">
       <div class="left-col">
-        <section class="card section">
+        <section class="card section fly-in">
           <h3>Athlet &amp; Disziplin auswählen</h3>
           <div class="select-row">
             <div class="field">
@@ -355,7 +355,7 @@
       </div>
 
       <div class="right-col">
-        <aside class="card summary">
+        <aside class="card summary fly-in-right">
           <h3>Zusammenfassung</h3>
           <div class="summary-row">
             <div class="label">Athlet</div>
@@ -394,8 +394,8 @@
           </div>
         </aside>
 
-        <a class="btn-link view-link" href="/coach/feedback">Bewertungen ansehen</a>
-        <a class="btn-link delete-link" href="/coach/feedback">Bewertungen löschen</a>
+        <a class="btn-link view-link fly-in-link" style="--delay: 0" href="/coach/feedback">Bewertungen ansehen</a>
+        <a class="btn-link delete-link fly-in-link" style="--delay: 1" href="/coach/feedback">Bewertungen löschen</a>
       </div>
     </div>
   </main>
@@ -407,6 +407,12 @@
   .page-header h1{margin:0 0 6px;font-size:28px;font-weight:700}
   .muted{margin:0;color:#6b7280;font-size:14px}
   .btn-link{display:inline-flex;align-items:center;gap:6px;padding:10px 14px;border-radius:10px;border:1px solid #e5e7eb;background:#fff;color:#111;font-weight:600;text-decoration:none;box-shadow:0 4px 10px rgba(0,0,0,0.04)}
+  .btn-link.fly-in-link{
+    opacity:0;
+    transform:translateY(18px);
+    animation:linkFlyIn 520ms ease forwards;
+    animation-delay:calc(var(--delay, 0) * 90ms + 260ms);
+  }
 
   .content-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-top:18px}
   .left-col{display:flex;flex-direction:column;gap:16px}
@@ -416,6 +422,12 @@
   .card{background:#fff;border-radius:12px;border:1px solid #e5e7eb;box-shadow:0 8px 18px rgba(15,23,36,0.05)}
   .section{padding:16px 18px}
   .section h3{margin:0 0 12px;font-size:18px}
+  .section.fly-in{
+    opacity:0;
+    transform:translateX(-22px);
+    animation:sectionFlyIn 560ms ease forwards;
+    animation-delay:120ms;
+  }
 
   .select-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .field label{display:block;font-weight:600;font-size:13px;margin-bottom:6px;color:#111}
@@ -549,6 +561,12 @@
   .summary{padding:16px 18px}
   .summary{max-height:fit-content;align-self:start}
   .summary h3{margin:0 0 10px}
+  .summary.fly-in-right{
+    opacity:0;
+    transform:translateX(22px);
+    animation:summaryFlyIn 560ms ease forwards;
+    animation-delay:200ms;
+  }
   .summary-row{display:flex;justify-content:space-between;align-items:center;font-size:14px;margin:6px 0}
   .summary-row .label{color:#6b7280}
   .summary-row .value{color:#111;font-weight:600}
@@ -595,6 +613,27 @@
     font-weight:700;
     font-size:14px;
     z-index:20;
+  }
+
+  @keyframes sectionFlyIn{
+    from{opacity:0;transform:translateX(-22px)}
+    to{opacity:1;transform:translateX(0)}
+  }
+
+  @keyframes summaryFlyIn{
+    from{opacity:0;transform:translateX(22px)}
+    to{opacity:1;transform:translateX(0)}
+  }
+
+  @keyframes linkFlyIn{
+    from{opacity:0;transform:translateY(18px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .section.fly-in,
+    .summary.fly-in-right,
+    .btn-link.fly-in-link{animation:none;opacity:1;transform:none}
   }
 
   @media (max-width:1000px){

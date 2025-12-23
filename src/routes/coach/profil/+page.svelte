@@ -103,7 +103,7 @@
     </header>
 
     <section class="layout">
-      <div class="profile-card card">
+      <div class="profile-card card reveal-card" style="--delay:0">
         <div class="avatar-wrap">
           <div class="avatar">
             <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">

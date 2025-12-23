@@ -349,7 +349,7 @@ async function submitAthlete(payload, setError, setSending) {
 		</header>
 
 		<div class="form-card-grid">
-			<div class="form-card">
+			<div class="form-card fly-in">
 				<Card title="Athlet erfassen" subtitle="Neuen Athleten hinzufügen">
 					<div class="form-grid compact">
 						<FormField label="Athlet *" placeholder="Name" bind:value={athleteForm.athlete} required />
@@ -635,6 +635,12 @@ async function submitAthlete(payload, setError, setSending) {
 	.form-card :global(.card-header){margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #eef2f6}
 	.form-card :global(.card-header h3){font-size:20px}
 	.form-card :global(.card-header p){margin-top:6px;color:#6b7280;font-size:14px}
+	.form-card.fly-in{
+		opacity:0;
+		transform:translateX(-22px);
+		animation:formFlyIn 560ms ease forwards;
+		animation-delay:120ms;
+	}
 	.form-card .form-grid{
 		display:grid;
 		grid-template-columns:repeat(3,minmax(0,1fr));
@@ -781,8 +787,14 @@ async function submitAthlete(payload, setError, setSending) {
 		to{opacity:1;transform:translateY(0)}
 	}
 
+	@keyframes formFlyIn{
+		from{opacity:0;transform:translateX(-22px)}
+		to{opacity:1;transform:translateX(0)}
+	}
+
 	@media (prefers-reduced-motion: reduce){
-		.reveal-card{animation:none;opacity:1;transform:none}
+		.reveal-card,
+		.form-card.fly-in{animation:none;opacity:1;transform:none}
 	}
 
 	@media (max-width: 720px){
