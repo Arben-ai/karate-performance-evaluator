@@ -1016,10 +1016,11 @@
   .page.container{max-width:1200px;margin:24px auto;padding:0 20px}
   .page-header h1{margin:0;font-size:28px;font-weight:700}
   .page-header .muted{margin:4px 0 0;color:#6b7280;font-size:14px}
-  .filters{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px}
+  .filters{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px;position:relative;z-index:5}
   .filters.single{grid-template-columns:1fr}
   .filters.compare{grid-template-columns:1fr 1fr}
-  .field-box{padding:12px;border:1px solid #eef1f5;border-radius:10px;background:#fff;overflow:visible}
+  .field-box{padding:12px;border:1px solid #eef1f5;border-radius:10px;background:#fff;overflow:visible;position:relative;z-index:0}
+  .field-box:focus-within{z-index:10}
   .field-box.fly-in-left{
     opacity:0;
     transform:translateX(-22px);
@@ -1064,7 +1065,7 @@
     box-shadow:0 14px 28px rgba(15,23,36,0.14);
     max-height:260px;
     overflow:auto;
-    z-index:50;
+    z-index:20;
     padding:6px 0;
   }
   .suggest-item{
@@ -1099,7 +1100,7 @@
   .toggle input:checked + .toggle-ui::after{transform:translateX(20px)}
   .toggle-hint{margin:6px 0 0 56px;font-size:13px;color:#6b7280}
 
-  .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+  .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px;position:relative;z-index:1}
   .chart-grid.grid-single{grid-template-columns:1fr}
   .chart{padding:14px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 8px 16px rgba(15,23,36,0.05)}
   .chart.fly-in-card{
@@ -1137,7 +1138,7 @@
   .legend .dot.current{background:#e11d2f}
   .legend .dot.bench{background:#94a3b8;border:2px dashed #94a3b8}
 
-  .line-charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+  .line-charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px;position:relative;z-index:1}
   .line-charts.grid-single{grid-template-columns:1fr}
   .line-card{padding:14px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 8px 16px rgba(15,23,36,0.05)}
   .line-card.fly-in-line{
