@@ -56,6 +56,7 @@
 
 <style>
   .combo{position:relative}
+  .combo[data-open="true"]{z-index:1000}
   .trigger{
     width:100%;
     display:flex;
@@ -80,11 +81,11 @@
     border:1px solid #e5e7eb;
     border-radius:10px;
     box-shadow:0 12px 24px rgba(15,23,36,0.12);
-    z-index:25;
-    max-height:240px;
+    z-index:1000;
+    max-height:180px;
     overflow:hidden;
   }
-  ul{list-style:none;margin:0;padding:6px 0;max-height:240px;overflow:auto}
+  ul{list-style:none;margin:0;padding:6px 0;max-height:180px;overflow:auto}
   li button{
     width:100%;
     padding:10px 14px;

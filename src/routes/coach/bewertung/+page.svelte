@@ -240,12 +240,12 @@
 
     <div class="content-grid">
       <div class="left-col">
-        <section class="card section fly-in">
+        <section class="card section fly-in" data-open={dropdownOpen}>
           <h3>Athlet &amp; Disziplin auswählen</h3>
           <div class="select-row">
             <div class="field">
               <label for="athlete">Athlet</label>
-              <div class="search-select" bind:this={dropdownEl}>
+              <div class="search-select" bind:this={dropdownEl} data-open={dropdownOpen}>
                 <input
                   id="athlete-input"
                   type="search"
@@ -420,7 +420,8 @@
   .right-col > *{width:100%}
 
   .card{background:#fff;border-radius:12px;border:1px solid #e5e7eb;box-shadow:0 8px 18px rgba(15,23,36,0.05)}
-  .section{padding:16px 18px}
+  .section{padding:16px 18px;position:relative;z-index:1}
+  .section[data-open="true"]{z-index:50}
   .section h3{margin:0 0 12px;font-size:18px}
   .section.fly-in{
     opacity:0;
@@ -452,6 +453,7 @@
   .field select.filled{color:#111;font-weight:500;}
   .field .search{display:none}
   .search-select{position:relative}
+  .search-select[data-open="true"]{z-index:1000}
   .search-select input{
     width:100%;
     padding:12px 14px;
@@ -474,15 +476,15 @@
     border:1px solid #e5e7eb;
     border-radius:12px;
     box-shadow:0 12px 28px rgba(15,23,36,0.12);
-    z-index:20;
-    max-height:260px;
+    z-index:1000;
+    max-height:180px;
     overflow:hidden;
   }
   .dropdown-panel ul{
     list-style:none;
     margin:0;
     padding:6px 0;
-    max-height:220px;
+    max-height:160px;
     overflow:auto;
   }
   .dropdown-panel li{padding:0}

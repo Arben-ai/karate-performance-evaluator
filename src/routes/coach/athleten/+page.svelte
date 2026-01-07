@@ -628,6 +628,7 @@ async function submitAthlete(payload, setError, setSending) {
 
 	.card{background:#fff;border-radius:12px;border:1px solid #e5e7eb;box-shadow:0 8px 18px rgba(15,23,36,0.05);padding:16px}
 	.form-card-grid{display:grid;grid-template-columns:1fr;gap:56px;margin:18px 0 32px}
+	.form-card{position:relative;z-index:10}
 	.form-card-grid + .grid{margin-top:32px}
 	.form-card-grid + .empty{margin-top:12px}
 	.form-card + .form-card{margin-top:4px}
