@@ -30,7 +30,7 @@
 ## 2. Zielgruppe & Stakeholder
 - **Primäre Zielgruppe:** Coaches und Athlet:innen in grossen sowie kleinen Sportvereinen oder Trainingsgruppen.  
 - **Weitere Stakeholder [Optional]:** Dozierende (Bewertung des Projekts), Modulverantwortliche, Kommiliton:innen.  
-- **Annahmen [Optional]:** Nutzer:innen verfügen über grundlegende Web-Kenntnisse, Die Anwendung wird primär auf Desktop genutzt und Coaches verwalten mehrere Athlet:innen
+- **Annahmen [Optional]:** Nutzer:innen verfügen über grundlegende Web-Kenntnisse, die Anwendung wird primär auf Desktop genutzt und Coaches verwalten mehrere Athlet:innen
 
 ## 3. Anforderungen & Umfang
 - **Kernfunktionalität (Mindestumfang):** Rollenbasierte Navigation (Coach / Athlete), Anzeigen von Athlet:innen aus einer Datenbank, Detailseiten für Athlet:innen, durchgängige Workflows ohne Mock-Daten und Deployment als Web-Applikation  
@@ -259,12 +259,12 @@ Nach mehreren Trainings und Wettkämpfen erhalten die Athleten regelmässig Rüc
 
 ## 6. Projektorganisation [Optional]
 Beispiele:
-- **Repository & Struktur:** _[Link; kurze Strukturübersicht]_  
-- **Issue‑Management:** _[Vorgehen kurz beschreiben]_  
+- **Repository & Struktur:** https://github.com/Arben-ai/karate-performance-evaluator  
+- **Issue‑Management:** Für die Planung und Nachverfolgung von Aufgaben und Problemen wurden GitHub Issues genutzt. Issues wurden erstellt, um funktionale Anforderungen (z. B. neue Seiten oder Workflows), technische Probleme (z. B. Deployment- oder Datenbankfehler) sowie kleinere Verbesserungen festzuhalten.  
+  Die Issues dienten primär als persönliche To-do-Liste und Dokumentation des Projektfortschritts und wurden nach Umsetzung geschlossen.  
 - **Commit‑Praxis:** Commits wurden regelmässig und mit sprechenden Commit-Messages erstellt.
 
 ## 7. KI‑Deklaration
-Die folgende Deklaration ist verpflichtend und beschreibt den Einsatz von KI im Projekt.
 
 ### Eingesetzte KI‑Werkzeuge
 ChatGPT (OpenAI)
@@ -302,11 +302,6 @@ Die verwendeten Prompts wurden iterativ aufgebaut und im Projektverlauf verfeine
 Es wurden keine externen Vorlagen, kostenpflichtigen Assets oder geschützten Inhalte direkt übernommen. Sämtliche KI-generierten Inhalte dienten als Hilfestellung und wurden eigenständig weiterentwickelt. Es wurden ausschliesslich frei verfügbare Technologien und Frameworks verwendet, deren Nutzung den jeweiligen Lizenzbedingungen entspricht.
 
 ## 8. Anhang [Optional]
-Beispiele:
-- **Testskript & Materialien:** _[Link/Datei]_  
-- **Rohdaten/Auswertung:** _[Link/Datei]_  
-
----
 
 <!-- Prüfliste (nicht abgeben, nur intern nutzen) -->
 <!--
