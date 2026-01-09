@@ -48,17 +48,136 @@
 - **Variantenüberblick:** Es wurden mehrere Skizzen für die Navigation und Seitenstruktur erstellt (Coach-zentriert vs. Rollenwahl beim Einstieg).
 - **Skizzen:** Die Skizzen zeigen zunächst eine einfache Startseite mit einer klaren Rollenwahl (Coach, Schiedsrichter, Athlet). Darauf aufbauend wurden separate Ablaufskizzen für die Coach-Rolle entwickelt, inklusive Auswahl einer Disziplin (z. B. Kumite oder Kata/Kihon), der Athlet:innenübersicht sowie der Bewertungsansicht mit verschiedenen Kategorien (Technik, Taktik, Mental).
 
+<table align="center">
+  <tr>
+    <td><img src="images/Übung-8.png" width="380"></td>
+  </tr>
+  <tr>
+    <td align="center">Skizze – Übung 8</td>
+  </tr>
+</table>
+
+
 ### 4.3 Decide
 - **Gewählte Variante & Begründung:** Aus den erstellten Skizzen wurde bewusst nur das Konzept der Rollenwahl als verbindliche Entscheidungsgrundlage übernommen. Die klare Auswahl der Funktion (Coach, Athlet:in, Schiedsrichter) beim Einstieg wurde als zentraler Bestandteil definiert, da sie die Anwendung verständlich strukturiert und die unterschiedlichen Nutzungskontexte sauber trennt.
 Weitere Skizzen (z. B. zu Disziplinwahl, Athlet:innenlisten oder Bewertungsansichten) dienten primär der Exploration möglicher Abläufe und wurden nicht als fixe Mockups festgelegt.  
 - **End‑to‑End‑Ablauf:** Der verbindliche End-to-End-Ablauf beschränkt sich auf den Einstieg in die Anwendung:
 Startseite → Auswahl der Rolle → Weiterleitung in den entsprechenden Funktionsbereich.
 Die konkrete Ausgestaltung der nachfolgenden Seiten und Workflows wurde bewusst offen gehalten und im weiteren Projektverlauf direkt im Prototyp iterativ umgesetzt und angepasst.  
-- **Referenz‑Mockup:** Ein vollständiges, finales Mockup existiert nicht. Als Referenz dient ausschliesslich die Skizze zur Rollenwahl. Die übrigen Inhalte und Abläufe wurden direkt im klickbaren Prototyp entwickelt und verfeinert. Screenshots der umgesetzten Seiten sind im Repository dokumentiert und spiegeln den aktuellen Stand des Prototyps wider.  
+- **Referenz‑Mockup:** 
+## Startseite
+
+<table align="center">
+  <tr>
+    <td><img src="images/Startseite.png" width="380"></td>
+  </tr>
+  <tr>
+    <td align="center">Startseite</td>
+  </tr>
+</table>
+
+---
+
+## Anmeldung
+
+<table align="center">
+  <tr>
+    <td><img src="images/Anmeldung (Coach).png" width="380"></td>
+  </tr>
+  <tr>
+    <td align="center">Anmeldung</td>
+  </tr>
+</table>
+
+---
+
+## Coach – Mockups
+
+<table align="center">
+  <tr>
+    <td><img src="images/Coach-Dashboard.png" width="380"></td>
+    <td><img src="images/Coach-Analyse.png" width="380"></td>
+  </tr>
+  <tr>
+    <td align="center">Dashboard</td>
+    <td align="center">Analyse</td>
+  </tr>
+  <tr>
+    <td><img src="images/Coach-Bewertung.png" width="380"></td>
+    <td><img src="images/Coach-Feedback.png" width="380"></td>
+  </tr>
+  <tr>
+    <td align="center">Bewertung</td>
+    <td align="center">Feedback</td>
+  </tr>
+  <tr>
+    <td><img src="images/Coach-Profil.png" width="380"></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td align="center">Profil</td>
+    <td></td>
+  </tr>
+</table>
+
+---
+
+## Athlet – Mockups
+
+<table align="center">
+  <tr>
+    <td><img src="images/Athlet-Dashboard.png" width="380"></td>
+    <td><img src="images/Athlet-Analyse.png" width="380"></td>
+  </tr>
+  <tr>
+    <td align="center">Dashboard</td>
+    <td align="center">Analyse</td>
+  </tr>
+  <tr>
+    <td><img src="images/Athlet-Feedback.png" width="380"></td>
+    <td><img src="images/Athlet-Profil.png" width="380"></td>
+  </tr>
+  <tr>
+    <td align="center">Feedback</td>
+    <td align="center">Profil</td>
+  </tr>
+</table>
+
+---
+
+## Schiedsrichter – Mockups
+
+<table align="center">
+  <tr>
+    <td><img src="images/Schiedsrichter-Dashboard.png" width="380"></td>
+    <td><img src="images/Schiedsrichter-Analyse.png" width="380"></td>
+  </tr>
+  <tr>
+    <td align="center">Dashboard</td>
+    <td align="center">Analyse</td>
+  </tr>
+  <tr>
+    <td><img src="images/Schiedsrichter-Bewertung.png" width="380"></td>
+    <td><img src="images/Schiedsrichter-Feedback.png" width="380"></td>
+  </tr>
+  <tr>
+    <td align="center">Bewertung</td>
+    <td align="center">Feedback</td>
+  </tr>
+  <tr>
+    <td><img src="images/Schiedsrichter-Profil.png" width="380"></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td align="center">Profil</td>
+    <td></td>
+  </tr>
+</table>
 
 ### 4.4 Prototype
 - **Kernfunktionalität:** Der entwickelte Prototyp bildet ein rollenbasiertes Anwendungskonzept ab und stellt für Coaches und Athlet:innen jeweils angepasste Funktionsbereiche zur Verfügung. Nach der Rollenwahl gelangen Nutzer:innen auf ein Dashboard, das als zentrale Übersichtsseite dient und den Einstieg in die wichtigsten Funktionen ermöglicht.  
-Für Coaches umfasst der Prototyp folgende Kernseiten und Funktionen:
+
+    Für Coaches umfasst der Prototyp folgende Kernseiten und Funktionen:
 -Dashboard: Übersicht über relevante Informationen und Einstiegspunkte.
 -Athletenseite: Erstellen, Bearbeiten und Löschen von Athlet:innen.
 -Bewertungsseite: Durchführung von Bewertungen für ausgewählte Athlet:innen anhand definierter Kriterien.
@@ -66,22 +185,49 @@ Für Coaches umfasst der Prototyp folgende Kernseiten und Funktionen:
 -Analyse: Analyse einzelner Athlet:innen sowie Vergleich von zwei Athlet:innen anhand vorhandener Bewertungsdaten.
 -Profilseite: Einsicht in eigene Profildaten sowie Abmelden aus der Anwendung.
 
-Für Athlet:innen stehen reduzierte, rollenangepasste Funktionen zur Verfügung:
+    Für Athlet:innen stehen reduzierte, rollenangepasste Funktionen zur Verfügung:
 -Dashboard: Persönliche Übersicht.
 -Analyse: Einsicht in die eigene Analyse (kein Vergleich mit anderen Athlet:innen).
 -Feedbacks: Anzeige der eigenen erhaltenen Bewertungen.
 -Profilseite: Einsicht in persönliche Daten und Abmelden.
-- **Deployment:** _[URL]_  
+- **Deployment:** https://karate-performance-evaluator-kpe.netlify.app
 
 #### 4.4.1. Entwurf (Design)
-> **Hinweis:** Hier wird der **Prototyp** beschrieben, nicht das **Mockup**.
 - **Informationsarchitektur:** Der Prototyp ist rollenbasiert aufgebaut und folgt einer klaren Seitenstruktur. Nach der Rollenwahl gelangen Nutzer:innen auf ein Dashboard, das als zentrale Übersichts- und Einstiegseite dient. Von dort aus sind alle relevanten Funktionen über eine konsistente Navigation erreichbar.
 Die Informationsarchitektur unterscheidet klar zwischen Coach- und Athlet:innen-Sicht: Coaches haben Zugriff auf Verwaltungs-, Bewertungs- und Analysefunktionen, während Athlet:innen nur ihre eigenen Daten, Feedbacks und Analysen einsehen können. Diese Trennung reduziert Komplexität und verhindert Fehlbedienungen.
-- **Oberflächenentwürfe:**   
+- **Oberflächenentwürfe:** 
+## Coach – Prozess / Planung
+
+<table align="center">
+  <tr>
+    <td><img src="images/P-Coach-Dashboard.png" width="380"></td>
+    <td><img src="images/P-Coach-Athleten.png" width="380"></td>
+  </tr>
+  <tr>
+    <td align="center">Dashboard</td>
+    <td align="center">Athletenübersicht</td>
+  </tr>
+  <tr>
+    <td><img src="images/P-Coach-Analyse.png" width="380"></td>
+    <td><img src="images/P-Coach-Bewertung.png" width="380"></td>
+  </tr>
+  <tr>
+    <td align="center">Analyse</td>
+    <td align="center">Bewertung</td>
+  </tr>
+  <tr>
+    <td><img src="images/P-Coach-Feedback.png" width="380"></td>
+    <td><img src="images/P-Coach-Profil.png" width="380"></td>
+  </tr>
+  <tr>
+    <td align="center">Feedback</td>
+    <td align="center">Profil</td>
+  </tr>
+</table>
+
 - **Designentscheidungen:** Das Design ist bewusst schlicht und funktional gehalten. Der Fokus liegt auf Verständlichkeit, klaren Strukturen und einer intuitiven Bedienung. Visuelle Elemente wurden sparsam eingesetzt, um die kognitive Belastung gering zu halten. Wiederkehrende Layout- und Navigationselemente sorgen für Konsistenz und erleichtern die Orientierung innerhalb der Anwendung.
 
 #### 4.4.2. Umsetzung (Technik)
-Fasst die technische Realisierung zusammen.
 - **Technologie‑Stack:** Der Prototyp wurde mit SvelteKit umgesetzt. Für die Datenhaltung wird MongoDB verwendet. Frontend und Backend sind innerhalb des SvelteKit-Frameworks integriert.
 - **Tooling:** Visual Studio Code als Entwicklungsumgebung, Netlify für das Deployment und MongoDB als Datenbanklösung **ChatGPT**  
 - **Struktur & Komponenten:** Die Anwendung ist seitenbasiert strukturiert und nutzt die Routing-Logik von SvelteKit. Zentrale Seiten sind unter anderem Dashboard, Athletenverwaltung, Bewertung, Feedback, Analyse und Profil. Wiederverwendbare UI-Komponenten (z. B. Navigation, Karten, Formulare) sorgen für eine konsistente Benutzeroberfläche.
@@ -89,7 +235,7 @@ Fasst die technische Realisierung zusammen.
 - **Besondere Entscheidungen:** Ein bewusster Entscheid war der Einsatz realer Daten statt statischer Mock-Daten, um den Prototyp möglichst nah an einer realen Anwendung auszurichten. Zudem wurde der Build-Prozess so angepasst, dass serverseitige Funktionen auch im Netlify-Deployment korrekt ausgeführt werden.  
 
 ### 4.5 Validate
-- **URL der getesteten Version** (separat deployt)
+- **URL der getesteten Version:** karate-performance-evaluator.netlify.app
 - **Ziele der Prüfung:** Ziel der Usability Evaluation war es zu überprüfen, ob die zentralen Workflows für Coaches und Athlet:innen verständlich, nachvollziehbar und ohne Unterstützung durchführbar sind. Insbesondere sollte geprüft werden, ob Nutzer:innen ihre jeweiligen Ziele (Bewertung erfassen bzw. Feedback einsehen) effizient erreichen können.  
 - **Vorgehen:** Die Evaluation wurde als unmoderierter, szenariobasierter Usability-Test durchgeführt. Die Testpersonen erhielten die Testaufgaben in schriftlicher Form (gemäss PDF-Vorlage) und führten diese selbstständig durch. Währenddessen wurden Beobachtungen protokolliert und anschliessend gemeinsam reflektiert.  
 - **Stichprobe:** Getestet wurde mit zwei Testpersonen, die unterschiedliche Rollen einnahmen (Coach und Athlet). Beide verfügen über grundlegende Erfahrung im Umgang mit Web-Applikationen.
@@ -98,7 +244,7 @@ Szenario 1 – Coach:
 Sie sind Coach des Karate Schweizer Nationalkaders.
 Zu Beginn einer neuen Saison wird ein Athlet erstmals in den Kader aufgenommen. Nach einem gemeinsamen Trainingsblock soll seine sportliche Leistung dokumentiert werden, damit der Entwicklungsstand festgehalten und später nachvollzogen werden kann.
 
-Szenario 2 – Athlet:
+    Szenario 2 – Athlet:
 Sie sind Athlet des Karate Schweizer Nationalkaders.
 Nach mehreren Trainings und Wettkämpfen erhalten die Athleten regelmässig Rückmeldungen von den Coaches. Sie möchten nachvollziehen können, wie Ihre aktuelle Leistung eingeschätzt wird, um Ihr weiteres Training entsprechend auszurichten.
 - **Kennzahlen & Beobachtungen:** Beide Testpersonen konnten ihre Aufgaben erfolgreich abschliessen. Die Navigation wurde mehrheitlich korrekt genutzt, und die Rollenlogik wurde verstanden. Vereinzelt kam es zu kurzen Orientierungspausen, insbesondere beim Wechsel zwischen Übersicht, Feedback und Analyse.  
@@ -107,7 +253,6 @@ Nach mehreren Trainings und Wettkämpfen erhalten die Athleten regelmässig Rüc
 - **Umgesetzte Anpassungen [Optional]:**
 
 ## 5. Erweiterungen [Optional]
-Dokumentiert Erweiterungen über den Mindestumfang hinaus.
 - **Beschreibung & Nutzen:** Über den Mindestumfang hinaus wurden Analyse- und Vergleichsfunktionen umgesetzt, die es Coaches ermöglichen, Athlet:innen detailliert auszuwerten und miteinander zu vergleichen. Dies erhöht den praktischen Nutzen der Anwendung deutlich.  
 - **Umsetzung in Kürze:** Die Analyse basiert auf vorhandenen Bewertungsdaten und stellt diese strukturiert dar. Für Athlet:innen ist die Analyse auf die eigene Person beschränkt.  
 - **Abgrenzung zum Mindestumfang:** Analyse- und Vergleichsfunktionen sind nicht zwingend für den Grundworkflow notwendig, stellen jedoch eine funktionale Erweiterung dar.  
